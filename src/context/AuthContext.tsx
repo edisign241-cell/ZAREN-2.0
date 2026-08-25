@@ -391,6 +391,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         isLoggedIn,
+        isAuthLoaded,
         currentUser,
         login,
         register,

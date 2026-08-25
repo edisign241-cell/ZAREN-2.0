@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { supabase } from '@/lib/supabase';
+
 export interface AuthUser {
   id: string;
   name: string;
@@ -49,6 +51,7 @@ const DEFAULT_USER: AuthUser = {
 
 interface AuthContextType {
   isLoggedIn: boolean;
+  isAuthLoaded: boolean;
   currentUser: AuthUser | null;
   login: (params?: {
     identifier?: string;
@@ -94,8 +97,9 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  isLoggedIn: true,
-  currentUser: DEFAULT_USER,
+  isLoggedIn: false,
+  isAuthLoaded: false,
+  currentUser: null,
   login: () => ({ success: true }),
   register: () => {},
   sendOtp: async () => ({ success: true, code: '742910', message: 'Code OTP envoyé' }),
@@ -120,8 +124,9 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(DEFAULT_USER);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isAuthLoaded, setIsAuthLoaded] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
@@ -134,36 +139,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedAuth = localStorage.getItem('zaren_is_logged_in');
       const savedUser = localStorage.getItem('zaren_user_data');
-      if (savedAuth !== null) {
-        const loggedIn = savedAuth === 'true';
-        setIsLoggedIn(loggedIn);
-        if (loggedIn) {
-          const parsed = savedUser ? JSON.parse(savedUser) : DEFAULT_USER;
-          if (!parsed.account_tier) {
-            parsed.account_tier = parsed.plan === 'PRO' ? 'PRO' : 'STANDARD';
-          }
-          if (!parsed.username) {
-            parsed.username = `@${parsed.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-          }
-          if (!parsed.email) {
-            parsed.email = `${parsed.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@zaren.ga`;
-          }
-          if (parsed.isPhoneVerified === undefined) {
-            parsed.isPhoneVerified = true;
-          }
-          setCurrentUser(parsed);
-        } else {
-          setCurrentUser(null);
+      if (savedAuth === 'true' && savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (!parsed.account_tier) {
+          parsed.account_tier = parsed.plan === 'PRO' ? 'PRO' : 'STANDARD';
         }
-      } else {
-        // Par défaut connecté pour la démo
+        if (!parsed.username) {
+          parsed.username = `@${parsed.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        }
+        if (!parsed.email) {
+          parsed.email = `${parsed.name.toLowerCase().replace(/[^a-z0-9]/g, '.')}@zaren.ga`;
+        }
+        if (parsed.isPhoneVerified === undefined) {
+          parsed.isPhoneVerified = true;
+        }
         setIsLoggedIn(true);
-        setCurrentUser(DEFAULT_USER);
-        localStorage.setItem('zaren_is_logged_in', 'true');
-        localStorage.setItem('zaren_user_data', JSON.stringify(DEFAULT_USER));
+        setCurrentUser(parsed);
+      } else {
+        setIsLoggedIn(false);
+        setCurrentUser(null);
       }
     } catch (err) {
       console.warn('LocalStorage error in AuthProvider:', err);
+      setIsLoggedIn(false);
+      setCurrentUser(null);
+    } finally {
+      setIsAuthLoaded(true);
     }
   }, []);
 
@@ -289,6 +290,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('zaren_is_logged_in', 'true');
       localStorage.setItem('zaren_user_data', JSON.stringify(newUser));
     } catch (err) {}
+
+    // Synchronisation en direct avec la base de données Supabase
+    try {
+      supabase.from('users').upsert({
+        phone_number: params.phone.trim(),
+        full_name: params.name.trim(),
+        username: cleanUsername,
+        email: cleanEmail,
+        city: params.city,
+        district: params.district || 'Centre',
+        role: 'USER',
+        account_tier: tier,
+        plan: params.plan,
+        is_active: true,
+        is_phone_verified: true
+      }).then(({ error }) => {
+        if (error) console.warn('Supabase sync user warning:', error);
+      });
+    } catch (err) {
+      console.warn('Supabase sync error:', err);
+    }
 
     router.push('/');
   };

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="zarenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#zarenGrad)" />
+  <path d="M256 80 L380 135 L380 260 C380 345 256 425 256 425 C256 425 132 345 132 260 L132 135 Z" fill="none" stroke="#4ade80" stroke-width="24" stroke-linejoin="round" />
+  <path d="M200 256 L240 296 L315 215" fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

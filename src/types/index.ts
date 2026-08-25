@@ -73,7 +73,7 @@ export interface User {
   role: UserRole;
   isActive: boolean;
   account_tier?: AccountTier;
-  plan: SubscriptionPlan;
+  plan?: SubscriptionPlan;
   planExpiresAt?: string;
   ratingAvg?: number;
   ratingCount?: number;

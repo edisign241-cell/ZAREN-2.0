@@ -8,6 +8,8 @@ export const MOCK_USERS: User[] = [
     city: 'Libreville',
     district: 'Louis',
     role: 'USER',
+    account_tier: 'PRO',
+    plan: 'PRO',
     isActive: true,
     createdAt: '2026-01-10T10:00:00Z',
   },
@@ -18,6 +20,8 @@ export const MOCK_USERS: User[] = [
     city: 'Libreville',
     district: 'Batterie IV',
     role: 'USER',
+    account_tier: 'STANDARD',
+    plan: 'STANDARD',
     isActive: true,
     createdAt: '2026-02-14T14:30:00Z',
   }

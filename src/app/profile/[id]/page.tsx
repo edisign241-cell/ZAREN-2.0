@@ -43,7 +43,7 @@ export default function UserPublicProfilePage() {
           seller={{
             ...seller,
             businessName: currentUser?.businessName || seller.businessName,
-            avatarUrl: currentUser?.avatar || seller.logoUrl,
+            logoUrl: currentUser?.avatar || seller.logoUrl,
             city: currentUser?.city || seller.city,
             district: currentUser?.district || seller.district,
             ratingAvg: currentUser?.ratingAvg || seller.ratingAvg,

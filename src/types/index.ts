@@ -92,6 +92,7 @@ export interface SellerProfile {
   slug: string;
   bio?: string;
   logoUrl?: string;
+  avatarUrl?: string;
   bannerUrl?: string;
   isVerified: boolean;
   account_tier?: AccountTier;

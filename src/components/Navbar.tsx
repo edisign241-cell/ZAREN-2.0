@@ -59,17 +59,6 @@ export default function Navbar() {
     };
   }, [isMenuOpen, isLoginModalOpen]);
 
-  const handleQuickLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoggingIn(true);
-    setTimeout(() => {
-      login(inputPhone, inputName);
-      setIsLoggingIn(false);
-      setIsMenuOpen(false);
-      router.push('/');
-    }, 600);
-  };
-
   const handleLogoutClick = () => {
     logout();
     setIsMenuOpen(false);

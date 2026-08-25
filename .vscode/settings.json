@@ -1,4 +1,6 @@
 {
+  "git.path": "C:\\Users\\Joffray\\AppData\\Local\\Programs\\Git\\cmd\\git.exe",
+  "git.enabled": true,
   "css.lint.unknownAtRules": "ignore",
   "scss.lint.unknownAtRules": "ignore",
   "less.lint.unknownAtRules": "ignore",

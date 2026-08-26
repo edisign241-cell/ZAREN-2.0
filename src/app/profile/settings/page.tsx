@@ -278,14 +278,14 @@ export default function ProfileSettingsPage() {
 
           {/* CAS 1 : SI VENDEUR STANDARD -> BANNIÈRE & CTA D'UPGRADE PRO (SANS FORMULAIRES BOUTIQUE) */}
           {!isPro ? (
-            <div className="bg-linear-to-br from-neutral-900 via-neutral-900 to-neutral-800 rounded-3xl p-6 text-white border border-neutral-700 shadow-xl space-y-4">
+            <div className="bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 rounded-3xl p-6 text-white border border-neutral-700 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center">
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <h3 className="text-sm font-black italic text-white">
-                    Passez au Pass Pro (4 500 FCFA / mois)
+                    Passez au Pass Marchand Pro
                   </h3>
                 </div>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-neutral-950">
@@ -294,29 +294,46 @@ export default function ProfileSettingsPage() {
               </div>
 
               <p className="text-xs text-gray-300 leading-relaxed">
-                Vous utilisez actuellement la formule <strong className="text-white">Vendeur Standard</strong> avec facturation unitaire de <strong className="text-white">500 FCFA / publication</strong>.
+                Vous utilisez actuellement la formule <strong className="text-white">Vendeur Standard</strong> (facturation de 500 FCFA / annonce). Débloquez votre boutique officielle et vendez en illimité.
               </p>
+
+              {/* Tarifs Mensuel / Annuel */}
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <div className="p-3 rounded-2xl bg-white/10 border border-white/15 text-center space-y-0.5">
+                  <span className="text-[10px] font-bold text-gray-300 uppercase block">Mensuel</span>
+                  <span className="text-sm font-black text-[#4ade80]">4 500 FCFA</span>
+                  <span className="text-[10px] text-gray-400 block">/ mois</span>
+                </div>
+                <div className="p-3 rounded-2xl bg-amber-400/15 border border-amber-400/30 text-center space-y-0.5 relative overflow-hidden">
+                  <span className="absolute -top-1 -right-4 px-3 py-0.5 bg-amber-400 text-neutral-950 font-black text-[8px] rotate-12">
+                    -17%
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-200 uppercase block">Annuel (2 mois offerts)</span>
+                  <span className="text-sm font-black text-amber-400">45 000 FCFA</span>
+                  <span className="text-[10px] text-gray-400 block">/ an</span>
+                </div>
+              </div>
 
               <div className="space-y-2 pt-2 border-t border-neutral-700/80 text-xs">
                 <div className="flex items-center gap-2 text-gray-200">
-                  <CheckCircle2 className="w-4 h-4 text-[#008A45] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0" />
                   <span><strong>Publications illimitées</strong> sans frais unitaires</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-200">
-                  <CheckCircle2 className="w-4 h-4 text-[#008A45] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0" />
                   <span><strong>Vitrine Boutique Marchande</strong> avec bannière HD & logo officiel</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-200">
-                  <CheckCircle2 className="w-4 h-4 text-[#008A45] shrink-0" />
-                  <span><strong>Badge officiel</strong> « Vendeur Vérifié ZARÉN »</span>
+                  <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0" />
+                  <span><strong>Badge officiel</strong> « ⭐ Vendeur Vérifié ZARÉN »</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-200">
-                  <CheckCircle2 className="w-4 h-4 text-[#008A45] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0" />
                   <span><strong>Assistant commercial IA</strong> <em>SellerCoach</em> illimité</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-200">
-                  <CheckCircle2 className="w-4 h-4 text-[#008A45] shrink-0" />
-                  <span><strong>Déblocage prioritaire</strong> des fonds de vente</span>
+                  <CheckCircle2 className="w-4 h-4 text-[#4ade80] shrink-0" />
+                  <span><strong>Déblocage prioritaire</strong> des fonds de vente Mobile Money</span>
                 </div>
               </div>
 
@@ -326,10 +343,10 @@ export default function ProfileSettingsPage() {
                   upgradeToPro();
                   setToastMessage('⭐ Félicitations ! Votre compte est maintenant Vendeur Pro.');
                 }}
-                className="w-full py-3.5 bg-[#008A45] hover:bg-[#007339] text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-lg flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer mt-3"
+                className="w-full py-3.5 bg-[#008A45] hover:bg-[#007339] text-white text-xs font-black uppercase tracking-wider rounded-2xl shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer mt-3"
               >
                 <Zap className="w-4 h-4" />
-                <span>Activer le Pass Pro (4 500 FCFA/mois)</span>
+                <span>Activer le Pass Pro (4 500 FCFA / mois)</span>
               </button>
             </div>
           ) : (

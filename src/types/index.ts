@@ -57,6 +57,53 @@ export interface MediaUploadProgress {
 }
 
 export type AccountTier = 'STANDARD' | 'PRO';
+export type SubscriptionPlan = 'PRO' | 'PER_LISTING' | 'STANDARD';
+
+export interface BaseProfile {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  city: string;
+  district?: string;
+  country?: string;
+  phone?: string;
+  email?: string;
+  ratingAvg: number;
+  ratingCount: number;
+  completedSalesCount: number;
+  escrowBalance?: number;
+}
+
+export interface StandardProfile extends BaseProfile {
+  account_tier: 'STANDARD';
+  plan?: 'STANDARD' | 'PER_LISTING';
+}
+
+export interface ProProfile extends BaseProfile {
+  account_tier: 'PRO';
+  plan?: 'PRO';
+  businessName: string;
+  slug: string;
+  bio?: string;
+  bannerUrl?: string;
+  logoUrl?: string;
+  isVerified: boolean;
+  totalSalesCount?: number;
+  payoutMethod?: PaymentGateway;
+  payoutAccountNumber?: string;
+  payoutAccountName?: string;
+  address?: string;
+  shopHours?: string;
+  whatsapp?: string;
+}
+
+export type Profile = StandardProfile | ProProfile;
+
+export function isProProfile(profile: Profile | null | undefined): profile is ProProfile {
+  return Boolean(profile && profile.account_tier === 'PRO');
+}
+
 
 export interface User {
   id: string;

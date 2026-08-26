@@ -33,6 +33,8 @@ interface StandardProfileViewProps {
     avatar: string;
     city: string;
     district?: string;
+    phone?: string;
+    phoneNumber?: string;
     ratingAvg: number;
     ratingCount: number;
     completedSalesCount?: number;
@@ -143,7 +145,7 @@ export default function StandardProfileView({
           <div className="grid grid-cols-2 gap-2.5 pt-2">
             <Link
               href="/seller/new"
-              className="py-3 px-3 rounded-2xl bg-[#008A45] hover:bg-[#007339] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition text-center"
+              className="py-3 px-3 rounded-2xl bg-[#008A45] hover:bg-[#007339] text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition text-center cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
               <span>+ Vendre un article</span>
@@ -151,7 +153,7 @@ export default function StandardProfileView({
 
             <Link
               href="/profile/settings"
-              className="py-3 px-3 rounded-2xl bg-white hover:bg-neutral-50 text-[#111111] border border-[#E5E5E5] text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs active:scale-98 transition text-center"
+              className="py-3 px-3 rounded-2xl bg-white hover:bg-neutral-50 text-[#111111] border border-[#E5E5E5] text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs active:scale-98 transition text-center cursor-pointer"
             >
               <Settings className="w-4 h-4 text-gray-600" />
               <span>Modifier le profil</span>
@@ -194,7 +196,7 @@ export default function StandardProfileView({
             </span>
             <div className="flex items-baseline gap-1.5">
               <span className="text-xl font-black italic text-[#111111] font-mono">
-                {new Intl.NumberFormat('fr-FR').format(user.escrowBalance || 482000)}
+                {new Intl.NumberFormat('fr-FR').format(user.escrowBalance || 0)}
               </span>
               <span className="text-xs font-bold text-[#008A45]">FCFA</span>
             </div>
@@ -261,63 +263,82 @@ export default function StandardProfileView({
               <span className="text-[#008A45] font-mono">500 FCFA / publication</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              {dressingProducts.map((prod) => (
-                <div
-                  key={prod.id}
-                  className="bg-white rounded-2xl overflow-hidden border border-[#E5E5E5] shadow-2xs flex flex-col justify-between group hover:border-gray-400 transition"
+            {dressingProducts.length === 0 ? (
+              <div className="bg-white p-8 rounded-2xl border border-[#E5E5E5] text-center space-y-3">
+                <Tag className="w-8 h-8 text-gray-300 mx-auto" />
+                <h4 className="text-xs font-bold text-gray-800">Votre dressing est actuellement vide</h4>
+                <p className="text-[11px] text-gray-500 max-w-xs mx-auto">
+                  Publiez vos premiers articles en quelques secondes pour commencer à vendre en toute sécurité.
+                </p>
+                <Link
+                  href="/seller/new"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#008A45] hover:bg-[#007339] text-white text-xs font-bold rounded-xl transition"
                 >
-                  <Link href={`/p/${prod.shortCode}`} className="block relative aspect-square bg-gray-100 overflow-hidden">
-                    <img
-                      src={prod.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80'}
-                      alt={prod.title}
-                      className="w-full h-full object-cover group-hover:scale-103 transition duration-300"
-                    />
-                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white text-[9px] font-bold">
-                      {prod.condition}
-                    </div>
-                  </Link>
-
-                  <div className="p-3 space-y-1.5">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-sm font-black italic text-[#111111] font-mono">
-                        {formatPrice(prod.price)}
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-semibold">
-                        {prod.size}
-                      </span>
-                    </div>
-
-                    <Link href={`/p/${prod.shortCode}`} className="block">
-                      <h3 className="text-xs font-bold text-gray-800 line-clamp-1 group-hover:text-[#008A45] transition">
-                        {prod.title}
-                      </h3>
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span>+ Vendre mon premier article</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {dressingProducts.map((prod) => (
+                  <div
+                    key={prod.id}
+                    className="bg-white rounded-2xl overflow-hidden border border-[#E5E5E5] shadow-2xs flex flex-col justify-between group hover:border-gray-400 transition"
+                  >
+                    <Link href={`/p/${prod.shortCode}`} className="block relative aspect-square bg-gray-100 overflow-hidden">
+                      <img
+                        src={prod.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80'}
+                        alt={prod.title}
+                        className="w-full h-full object-cover group-hover:scale-103 transition duration-300"
+                      />
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white text-[9px] font-bold">
+                        {prod.condition}
+                      </div>
                     </Link>
 
-                    <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px]">
-                      <span className="text-gray-500">{prod.city}</span>
-                      <Link
-                        href={`/p/${prod.shortCode}`}
-                        className="text-[#008A45] font-black hover:underline"
-                      >
-                        Voir →
+                    <div className="p-3 space-y-1.5">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-sm font-black italic text-[#111111] font-mono">
+                          {formatPrice(prod.price)}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-semibold">
+                          {prod.size}
+                        </span>
+                      </div>
+
+                      <Link href={`/p/${prod.shortCode}`} className="block">
+                        <h3 className="text-xs font-bold text-gray-800 line-clamp-1 group-hover:text-[#008A45] transition">
+                          {prod.title}
+                        </h3>
                       </Link>
+
+                      <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px]">
+                        <span className="text-gray-500">{prod.city}</span>
+                        <Link
+                          href={`/p/${prod.shortCode}`}
+                          className="text-[#008A45] font-black hover:underline"
+                        >
+                          Voir →
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Bouton Ajouter un article dans le dressing */}
-            <div className="pt-2">
-              <Link
-                href="/seller/new"
-                className="w-full py-3.5 bg-white border-2 border-dashed border-gray-300 hover:border-[#008A45] text-gray-700 hover:text-[#008A45] text-xs font-bold uppercase rounded-2xl flex items-center justify-center gap-2 transition text-center shadow-2xs"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>+ Ajouter une pièce à mon dressing (500 FCFA)</span>
-              </Link>
-            </div>
+            {dressingProducts.length > 0 && (
+              <div className="pt-2">
+                <Link
+                  href="/seller/new"
+                  className="w-full py-3.5 bg-white border-2 border-dashed border-gray-300 hover:border-[#008A45] text-gray-700 hover:text-[#008A45] text-xs font-bold uppercase rounded-2xl flex items-center justify-center gap-2 transition text-center shadow-2xs"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>+ Ajouter une pièce à mon dressing (500 FCFA)</span>
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -363,25 +384,39 @@ export default function StandardProfileView({
         {activeTab === 'PURCHASES' && (
           <div className="space-y-3 animate-fade-in">
             <h3 className="text-xs font-black uppercase text-gray-600 px-1">Mes commandes et achats personnels</h3>
-            <div className="bg-white p-4 rounded-2xl border border-[#E5E5E5] shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#008A45] flex items-center justify-center font-bold text-xs">
-                    <ShoppingBag className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-900">Robe de Soirée Satin Émeraude</h4>
-                    <span className="text-[10px] text-gray-400">Boutique Marlène • 45 000 FCFA</span>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#008A45] text-[10px] font-bold">
-                  Colis Reçu
-                </span>
+            {purchaseOrders.length === 0 ? (
+              <div className="bg-white p-8 rounded-2xl border border-[#E5E5E5] text-center space-y-2">
+                <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto" />
+                <p className="text-xs text-gray-500 font-medium">Vous n'avez pas encore effectué d'achat.</p>
+                <Link
+                  href="/#marche"
+                  className="inline-block mt-2 text-xs font-bold text-[#008A45] hover:underline"
+                >
+                  Découvrir Le Grand Marché →
+                </Link>
               </div>
-              <p className="text-[11px] text-gray-500 font-medium">
-                Paiement libéré avec succès après inspection physique sous séquestre.
-              </p>
-            </div>
+            ) : (
+              <div className="space-y-2.5">
+                {purchaseOrders.map((ord) => (
+                  <div key={ord.id} className="bg-white p-4 rounded-2xl border border-[#E5E5E5] shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#008A45] flex items-center justify-center font-bold text-xs">
+                          <ShoppingBag className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-900">{ord.product?.title || 'Article ZARÉN'}</h4>
+                          <span className="text-[10px] text-gray-400 font-mono">{formatPrice(ord.totalAmount)}</span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#008A45] text-[10px] font-bold">
+                        {ord.status === 'COMPLETED' ? 'Colis Reçu' : ord.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -393,28 +428,36 @@ export default function StandardProfileView({
               <span className="text-[11px] text-[#008A45] font-bold">100% vérifiés</span>
             </div>
 
-            <div className="space-y-2.5">
-              {reviews.map((rev) => (
-                <div key={rev.id} className="bg-white p-4 rounded-2xl border border-[#E5E5E5] shadow-xs space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center font-bold text-[11px] text-gray-700">
-                        {rev.authorName.charAt(0)}
+            {reviews.length === 0 ? (
+              <div className="bg-white p-8 rounded-2xl border border-[#E5E5E5] text-center space-y-2">
+                <Star className="w-8 h-8 text-gray-300 mx-auto" />
+                <p className="text-xs text-gray-500 font-medium">Aucun avis reçu pour le moment.</p>
+                <p className="text-[11px] text-gray-400">Les avis apparaîtront dès que vos acheteurs confirmeront la réception de leurs commandes.</p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {reviews.map((rev) => (
+                  <div key={rev.id} className="bg-white p-4 rounded-2xl border border-[#E5E5E5] shadow-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center font-bold text-[11px] text-gray-700">
+                          {rev.authorName.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-900">{rev.authorName}</h4>
+                          <span className="text-[10px] text-gray-400">Achat sous séquestre</span>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-900">{rev.authorName}</h4>
-                        <span className="text-[10px] text-gray-400">Achat sous séquestre</span>
-                      </div>
+                      <span className="text-amber-500 font-bold text-xs">{'★'.repeat(rev.rating)}</span>
                     </div>
-                    <span className="text-amber-500 font-bold text-xs">★★★★★</span>
-                  </div>
 
-                  <p className="text-xs text-gray-700 italic leading-relaxed">
-                    « {rev.comment || 'Vendeur rapide et produit conforme.'} »
-                  </p>
-                </div>
-              ))}
-            </div>
+                    <p className="text-xs text-gray-700 italic leading-relaxed">
+                      « {rev.comment || 'Vendeur rapide et produit conforme.'} »
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -437,8 +480,8 @@ export default function StandardProfileView({
             {payoutSuccess ? (
               <div className="p-4 bg-emerald-50 text-[#008A45] rounded-2xl text-center space-y-2">
                 <CheckCircle2 className="w-8 h-8 mx-auto" />
-                <h4 className="text-xs font-bold">Retrait de 482 000 FCFA validé !</h4>
-                <p className="text-[10px] text-emerald-800">Les fonds ont été transférés sur votre compte Airtel Money.</p>
+                <h4 className="text-xs font-bold">Demande de retrait validée !</h4>
+                <p className="text-[10px] text-emerald-800">Les fonds ont été transférés sur votre compte Mobile Money.</p>
               </div>
             ) : (
               <form onSubmit={handleRequestPayout} className="space-y-3">
@@ -446,22 +489,24 @@ export default function StandardProfileView({
                   <label className="block text-[11px] font-bold text-gray-700 mb-1">Montant à retirer (FCFA)</label>
                   <input
                     type="text"
-                    defaultValue="482000"
+                    defaultValue={user.escrowBalance || 0}
                     className="w-full text-sm font-mono font-bold p-3 bg-gray-50 border border-[#E5E5E5] rounded-xl"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-700 mb-1">Opérateur de réception</label>
-                  <select className="w-full text-xs font-bold p-3 bg-gray-50 border border-[#E5E5E5] rounded-xl">
-                    <option>🇬🇦 Airtel Money (+241 07 45 88 12)</option>
-                    <option>🇬🇦 Moov Money (+241 06 23 34 45)</option>
-                  </select>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-1">Numéro de réception Mobile Money</label>
+                  <input
+                    type="tel"
+                    defaultValue={user.phone || (user as any).phoneNumber || '+241 07 00 00 00'}
+                    className="w-full text-xs font-bold p-3 bg-gray-50 border border-[#E5E5E5] rounded-xl"
+                  />
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-[#008A45] hover:bg-[#007339] text-white text-xs font-bold uppercase rounded-xl shadow-md transition cursor-pointer"
+                  disabled={(user.escrowBalance || 0) <= 0}
+                  className="w-full py-3.5 bg-[#008A45] hover:bg-[#007339] disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-xs font-bold uppercase rounded-xl shadow-md transition cursor-pointer"
                 >
-                  Confirmer le déblocage immédiat
+                  {(user.escrowBalance || 0) > 0 ? 'Confirmer le déblocage immédiat' : 'Solde insuffisant pour un retrait'}
                 </button>
               </form>
             )}

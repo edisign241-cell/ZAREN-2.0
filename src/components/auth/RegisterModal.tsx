@@ -56,7 +56,8 @@ export default function RegisterModal() {
   const [city, setCity] = useState('Libreville');
   const [district, setDistrict] = useState('');
   
-  // OTP SMS
+  // OTP Verification Channel (SMS, WhatsApp, Email)
+  const [verificationChannel, setVerificationChannel] = useState<'SMS' | 'WHATSAPP' | 'EMAIL'>('SMS');
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
   const [generatedOtpDisplay, setGeneratedOtpDisplay] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(60);
@@ -87,14 +88,15 @@ export default function RegisterModal() {
     }
 
     setIsLoading(true);
-    const res = await sendOtp(phone);
+    const target = verificationChannel === 'EMAIL' ? email.trim() : phone.trim();
+    const res = await sendOtp(target, verificationChannel);
     setIsLoading(false);
 
     if (res.success) {
       setGeneratedOtpDisplay(res.code);
       setStep(3);
     } else {
-      setErrorMsg('Erreur lors de l’envoi du SMS. Veuillez vérifier votre numéro.');
+      setErrorMsg(`Erreur lors de l’envoi par ${verificationChannel === 'EMAIL' ? 'email' : verificationChannel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'}. Veuillez vérifier vos coordonnées.`);
     }
   };
 
@@ -123,13 +125,14 @@ export default function RegisterModal() {
     const fullCode = otpCode.join('');
 
     if (fullCode.length < 6) {
-      setErrorMsg('Veuillez saisir les 6 chiffres du code SMS reçu.');
+      setErrorMsg('Veuillez saisir les 6 chiffres du code reçu.');
       return;
     }
 
     setIsLoading(true);
     setTimeout(() => {
-      const isValid = verifyOtp(phone, fullCode);
+      const target = verificationChannel === 'EMAIL' ? email.trim() : phone.trim();
+      const isValid = verifyOtp(target, fullCode);
       if (isValid) {
         register({
           name,
@@ -140,7 +143,7 @@ export default function RegisterModal() {
           city,
           district: district || 'Centre',
           plan: selectedPlan,
-          isPhoneVerified: true
+          isPhoneVerified: verificationChannel !== 'EMAIL',
         });
       } else {
         setErrorMsg('Code de sécurité OTP incorrect. Veuillez réessayer.');
@@ -291,7 +294,7 @@ export default function RegisterModal() {
                     </div>
                     <div>
                       <h4 className="text-sm font-black italic text-gray-900">Vendeur Standard (Style Vinted)</h4>
-                      <p className="text-xs text-gray-500">Pour vendeurs occasionnels et acheteurs</p>
+                      <p className="text-xs text-gray-500">Pour vendre occasionnellement</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -312,6 +315,43 @@ export default function RegisterModal() {
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#008A45]" />
                     <span>Garantie séquestre et retraits Mobile Money instantanés</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* CARTE FORMULE 3 : ACHETEUR SIMPLE */}
+              <div
+                onClick={() => setSelectedPlan('FREE')}
+                className={`p-4 rounded-2xl border-2 cursor-pointer transition ${
+                  selectedPlan === 'FREE' || selectedPlan === 'STANDARD'
+                    ? 'border-[#008A45] bg-emerald-50/50 shadow-md ring-2 ring-[#008A45]/20'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center font-bold">
+                      <ShieldCheck className="w-5 h-5 text-[#008A45]" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black italic text-gray-900">Acheteur Simple</h4>
+                      <p className="text-xs text-gray-500">Pour commander sur Le Grand Marché</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-base font-black text-gray-900">0 FCFA</span>
+                    <span className="text-[10px] text-gray-400 block">100% Gratuit</span>
+                  </div>
+                </div>
+
+                <ul className="mt-3 pt-3 border-t border-gray-100 space-y-1.5 text-xs text-gray-700">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#008A45]" />
+                    <span>Paiements Mobile Money sécurisés par séquestre</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#008A45]" />
+                    <span>Suivi de commande et protection acheteur 48h</span>
                   </li>
                 </ul>
               </div>
@@ -338,7 +378,7 @@ export default function RegisterModal() {
                 <input
                   type="text"
                   required
-                  placeholder="Ex : Marlène Obame"
+                  placeholder="Ex : Sarah Ndombe ou Mode Chic"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#008A45] focus:ring-2 focus:ring-[#008A45]/20 text-xs font-medium outline-hidden transition"
@@ -437,6 +477,53 @@ export default function RegisterModal() {
                 </div>
               </div>
 
+              {/* SÉLECTION DU CANAL DE VÉRIFICATION OTP */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700 block">
+                  Recevoir mon code de confirmation par : *
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setVerificationChannel('SMS')}
+                    className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
+                      verificationChannel === 'SMS'
+                        ? 'border-[#008A45] bg-emerald-50 text-[#008A45] font-black ring-2 ring-[#008A45]/20'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-700 bg-white'
+                    }`}
+                  >
+                    <Smartphone className="w-4 h-4 mx-auto mb-1 text-[#008A45]" />
+                    <span className="text-[11px] block leading-tight font-bold">SMS Mobile</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setVerificationChannel('WHATSAPP')}
+                    className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
+                      verificationChannel === 'WHATSAPP'
+                        ? 'border-[#008A45] bg-emerald-50 text-[#008A45] font-black ring-2 ring-[#008A45]/20'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-700 bg-white'
+                    }`}
+                  >
+                    <Smartphone className="w-4 h-4 mx-auto mb-1 text-emerald-600" />
+                    <span className="text-[11px] block leading-tight font-bold">WhatsApp</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setVerificationChannel('EMAIL')}
+                    className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
+                      verificationChannel === 'EMAIL'
+                        ? 'border-[#008A45] bg-emerald-50 text-[#008A45] font-black ring-2 ring-[#008A45]/20'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-700 bg-white'
+                    }`}
+                  >
+                    <Mail className="w-4 h-4 mx-auto mb-1 text-blue-600" />
+                    <span className="text-[11px] block leading-tight font-bold">E-mail</span>
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="text-xs font-bold text-gray-700 mb-1 block">
                   Quartier / Lieu-dit (optionnel)
@@ -453,7 +540,7 @@ export default function RegisterModal() {
               {/* Récapitulatif formule */}
               <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between text-xs">
                 <span className="text-emerald-800 font-bold">
-                  Formule : {selectedPlan === 'PRO' ? '⭐ Pass Pro (4 500 FCFA/mois)' : '⚡ Standard (500 FCFA/acte)'}
+                  Formule : {selectedPlan === 'PRO' ? '⭐ Pass Pro (4 500 FCFA/mois)' : selectedPlan === 'PER_LISTING' ? '⚡ Standard (500 FCFA/acte)' : '🛡️ Acheteur (0 FCFA)'}
                 </span>
                 <button
                   type="button"
@@ -481,8 +568,14 @@ export default function RegisterModal() {
                     <span>Envoi du code OTP...</span>
                   ) : (
                     <>
-                      <Smartphone className="w-3.5 h-3.5" />
-                      <span>Vérifier mon numéro par SMS →</span>
+                      {verificationChannel === 'EMAIL' ? (
+                        <Mail className="w-3.5 h-3.5" />
+                      ) : (
+                        <Smartphone className="w-3.5 h-3.5" />
+                      )}
+                      <span>
+                        Recevoir mon code par {verificationChannel === 'EMAIL' ? 'E-mail' : verificationChannel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'} →
+                      </span>
                     </>
                   )}
                 </button>
@@ -490,17 +583,23 @@ export default function RegisterModal() {
             </form>
           )}
 
-          {/* ÉTAPE 3 : CONFIRMATION OTP SMS */}
+          {/* ÉTAPE 3 : CONFIRMATION OTP (SMS / WHATSAPP / EMAIL) */}
           {step === 3 && (
             <form onSubmit={handleFinalSubmit} className="space-y-4 animate-scale-in">
               
-              {/* Simulation SMS Notification */}
+              {/* Simulation Notification Réception */}
               {generatedOtpDisplay && (
                 <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 animate-fade-in">
                   <div className="flex items-center justify-between text-xs font-bold text-amber-900">
                     <span className="flex items-center gap-1.5">
-                      <Smartphone className="w-4 h-4 text-amber-600" />
-                      <span>SMS ZARÉN reçu sur {phone} :</span>
+                      {verificationChannel === 'EMAIL' ? (
+                        <Mail className="w-4 h-4 text-amber-600" />
+                      ) : (
+                        <Smartphone className="w-4 h-4 text-amber-600" />
+                      )}
+                      <span>
+                        {verificationChannel === 'EMAIL' ? 'E-mail' : verificationChannel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'} ZARÉN reçu sur {verificationChannel === 'EMAIL' ? email : phone} :
+                      </span>
                     </span>
                     <span className="font-mono bg-white px-2 py-0.5 rounded border border-amber-300 text-sm font-black text-[#008A45]">
                       {generatedOtpDisplay}
@@ -521,10 +620,13 @@ export default function RegisterModal() {
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <h3 className="text-sm font-black italic text-gray-900">
-                  Confirmation d'Identité par SMS
+                  Confirmation de Sécurité
                 </h3>
                 <p className="text-xs text-gray-500">
-                  Saisissez le code à 6 chiffres envoyé au <strong className="text-gray-800 font-mono">{phone}</strong>
+                  Saisissez le code à 6 chiffres envoyé par {verificationChannel === 'EMAIL' ? 'e-mail' : verificationChannel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'} à :{' '}
+                  <strong className="text-gray-800 font-mono">
+                    {verificationChannel === 'EMAIL' ? email : phone}
+                  </strong>
                 </p>
               </div>
 

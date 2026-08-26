@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { zarenStore } from '@/db/store';
+import { supabase } from '@/lib/supabase';
 import {
   ArrowLeft,
   Camera,
@@ -38,30 +40,30 @@ const PRESET_BANNERS = [
 
 export default function ProfileSettingsPage() {
   const router = useRouter();
-  const { logout, currentUser, switchAccountTier, upgradeToPro, downgradeToStandard } = useAuth();
+  const { logout, currentUser, updateUser, switchAccountTier, upgradeToPro, downgradeToStandard } = useAuth();
   
   const currentTier = currentUser?.account_tier || (currentUser?.plan === 'PRO' ? 'PRO' : 'STANDARD');
   const isPro = currentTier === 'PRO';
 
   const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80');
-  const [fullName, setFullName] = useState(currentUser?.name || 'Marlène Obame');
-  const [username, setUsername] = useState(currentUser?.username || '@marlene_dressing');
-  const [phone, setPhone] = useState(currentUser?.phone || '+241 07 45 88 12');
+  const [fullName, setFullName] = useState(currentUser?.name || '');
+  const [username, setUsername] = useState(currentUser?.username || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '+241 07 00 00 00');
   const [city, setCity] = useState(currentUser?.city || 'Libreville');
-  const [district, setDistrict] = useState(currentUser?.district || 'Quartier Louis');
+  const [district, setDistrict] = useState(currentUser?.district || 'Centre');
   
   // Section Vendeur Pro
-  const [businessName, setBusinessName] = useState(currentUser?.businessName || 'Marlène Dressing & High-Tech');
-  const [businessSlogan, setBusinessSlogan] = useState('Vêtements chics importés & Accessoires Apple d\'origine certifiée');
-  const [businessDescription, setBusinessDescription] = useState('Boutique premium certifiée à Libreville depuis 2022. Tous nos produits sont neufs, testés et garantis conformes sous séquestre ZARÉN.');
+  const [businessName, setBusinessName] = useState(currentUser?.businessName || '');
+  const [businessSlogan, setBusinessSlogan] = useState('Boutique vérifiée & Vente sécurisée sous séquestre ZARÉN');
+  const [businessDescription, setBusinessDescription] = useState('Boutique vérifiée sur ZARÉN. Tous nos articles sont contrôlés et garantis conformes sous séquestre Mobile Money.');
   const [shopBannerUrl, setShopBannerUrl] = useState('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80');
   const [shopLogoUrl, setShopLogoUrl] = useState(currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80');
-  const [shopAddress, setShopAddress] = useState('Galerie Marchande Louis, Rez-de-chaussée, Boutique N°14');
-  const [shopHours, setShopHours] = useState('Lun - Sam : 08h30 - 19h00 • Dimanche : 10h00 - 16h00');
-  const [shopWhatsapp, setShopWhatsapp] = useState('+241 07 45 88 12');
+  const [shopAddress, setShopAddress] = useState('Libreville, Gabon');
+  const [shopHours, setShopHours] = useState('Lun - Sam : 08h30 - 19h00');
+  const [shopWhatsapp, setShopWhatsapp] = useState('+241 07 00 00 00');
   
   const [payoutMethod, setPayoutMethod] = useState('AIRTEL_MONEY');
-  const [payoutPhone, setPayoutPhone] = useState('07 45 88 12');
+  const [payoutPhone, setPayoutPhone] = useState('07 00 00 00');
 
   // Préférences
   const [notifWhatsApp, setNotifWhatsApp] = useState(true);
@@ -69,10 +71,103 @@ export default function ProfileSettingsPage() {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Synchronisation dynamique avec le compte connecté et le store vendeur
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.avatar) setAvatarUrl(currentUser.avatar);
+      if (currentUser.name) setFullName(currentUser.name);
+      if (currentUser.username) setUsername(currentUser.username);
+      if (currentUser.phone) setPhone(currentUser.phone);
+      if (currentUser.city) setCity(currentUser.city);
+      if (currentUser.district) setDistrict(currentUser.district);
+      if (currentUser.businessName) setBusinessName(currentUser.businessName);
+
+      const seller = zarenStore.getSellerProfile();
+      if (seller) {
+        if (seller.bannerUrl) setShopBannerUrl(seller.bannerUrl);
+        if (seller.logoUrl) setShopLogoUrl(seller.logoUrl);
+        if (seller.address) setShopAddress(seller.address);
+        if (seller.shopHours) setShopHours(seller.shopHours);
+        if (seller.whatsapp) setShopWhatsapp(seller.whatsapp);
+        if (seller.bio) setBusinessDescription(seller.bio);
+        if (seller.payoutAccountNumber) setPayoutPhone(seller.payoutAccountNumber);
+        if (seller.payoutMethod) setPayoutMethod(seller.payoutMethod);
+      }
+    }
+  }, [currentUser]);
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanName = fullName.trim() || currentUser?.name || 'Utilisateur ZARÉN';
+    const cleanUsername = username.trim() || `@${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+    const cleanBusinessName = isPro ? (businessName.trim() || `${cleanName} Pro`) : `${cleanName} Dressing`;
+    const cleanPhone = phone.trim();
+    const cleanCity = city.trim();
+    const cleanDistrict = district.trim() || 'Centre';
+
+    // 1. Mise à jour de l'Auth Context et du LocalStorage utilisateur
+    updateUser({
+      name: cleanName,
+      username: cleanUsername,
+      phone: cleanPhone,
+      city: cleanCity,
+      district: cleanDistrict,
+      businessName: cleanBusinessName,
+      avatar: avatarUrl || shopLogoUrl,
+    });
+
+    // 2. Mise à jour du profil vendeur dans le Store Zarén
+    zarenStore.updateSellerProfile({
+      businessName: cleanBusinessName,
+      username: cleanUsername,
+      bio: isPro ? businessDescription.trim() : `Dressing officiel de ${cleanName} sur ZARÉN.`,
+      logoUrl: avatarUrl || shopLogoUrl,
+      avatarUrl: avatarUrl || shopLogoUrl,
+      bannerUrl: shopBannerUrl,
+      city: cleanCity,
+      district: cleanDistrict,
+      address: isPro ? shopAddress.trim() : `${cleanCity}, ${cleanDistrict}`,
+      shopHours: isPro ? shopHours.trim() : '08h30 - 19h00',
+      whatsapp: isPro ? (shopWhatsapp.trim() || cleanPhone) : cleanPhone,
+      payoutAccountNumber: payoutPhone.trim() || cleanPhone,
+      payoutMethod: payoutMethod as any,
+    });
+
+    // 3. Persistance dans Supabase (users & seller_profiles)
+    try {
+      if (supabase && currentUser?.id) {
+        supabase.from('users').update({
+          full_name: cleanName,
+          username: cleanUsername,
+          phone_number: cleanPhone,
+          city: cleanCity,
+          district: cleanDistrict,
+          avatar_url: avatarUrl || shopLogoUrl,
+        }).eq('id', currentUser.id).then(() => {});
+
+        supabase.from('seller_profiles').update({
+          business_name: cleanBusinessName,
+          bio: isPro ? businessDescription.trim() : `Dressing de ${cleanName}`,
+          logo_url: avatarUrl || shopLogoUrl,
+          banner_url: shopBannerUrl,
+          address: isPro ? shopAddress.trim() : `${cleanCity}, ${cleanDistrict}`,
+          payout_account_number: payoutPhone.trim() || cleanPhone,
+        }).eq('user_id', currentUser.id).then(() => {});
+      }
+    } catch (err) {
+      console.warn('Supabase update notification:', err);
+    }
+
     setToastMessage('✅ Vos informations de profil ont été enregistrées avec succès !');
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => {
+      setToastMessage(null);
+      if (currentUser?.id) {
+        router.push(`/profile/${currentUser.id}`);
+      } else {
+        router.push('/');
+      }
+    }, 1200);
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,12 +201,20 @@ export default function ProfileSettingsPage() {
         {/* En-tête de la page */}
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="p-2 rounded-xl bg-white border border-[#E5E5E5] text-[#111111] hover:bg-neutral-50 shadow-xs transition"
+            <button
+              type="button"
+              onClick={() => {
+                if (currentUser?.id) {
+                  router.push(`/profile/${currentUser.id}`);
+                } else {
+                  router.push('/');
+                }
+              }}
+              className="p-2 rounded-xl bg-white border border-[#E5E5E5] text-[#111111] hover:bg-neutral-50 shadow-xs transition cursor-pointer"
+              title="Retour au profil"
             >
               <ArrowLeft className="w-4 h-4" />
-            </Link>
+            </button>
             <div>
               <h1 className="text-xl font-black italic text-[#111111] tracking-tight">Paramètres du profil</h1>
               <span className="text-xs text-gray-500 font-medium">
@@ -206,7 +309,7 @@ export default function ProfileSettingsPage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Ex: Marlène Obame"
+                placeholder="Ex: Paul Ondo"
                 className="w-full text-xs font-semibold px-3.5 py-3 bg-[#F8F8F8] border border-[#E5E5E5] focus:border-[#008A45] focus:bg-white rounded-xl outline-hidden transition"
               />
             </div>
@@ -423,7 +526,7 @@ export default function ProfileSettingsPage() {
                   required
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Ex: Marlène Dressing & High-Tech"
+                  placeholder="Ex: Élite Mode & High-Tech"
                   className="w-full text-xs font-semibold px-3.5 py-3 bg-[#F8F8F8] border border-[#E5E5E5] focus:border-[#008A45] focus:bg-white rounded-xl outline-hidden transition"
                 />
               </div>

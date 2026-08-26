@@ -56,8 +56,8 @@ export interface MediaUploadProgress {
   resultMedia?: MediaItem;
 }
 
-export type AccountTier = 'STANDARD' | 'PRO';
-export type SubscriptionPlan = 'PRO' | 'PER_LISTING' | 'STANDARD';
+export type AccountTier = 'BUYER' | 'STANDARD' | 'PRO';
+export type SubscriptionPlan = 'PRO' | 'PER_LISTING' | 'STANDARD' | 'FREE';
 
 export interface BaseProfile {
   id: string;
@@ -72,7 +72,13 @@ export interface BaseProfile {
   ratingAvg: number;
   ratingCount: number;
   completedSalesCount: number;
+  completedPurchasesCount?: number;
   escrowBalance?: number;
+}
+
+export interface BuyerProfile extends BaseProfile {
+  account_tier: 'BUYER';
+  plan?: 'FREE' | 'STANDARD';
 }
 
 export interface StandardProfile extends BaseProfile {
@@ -98,10 +104,18 @@ export interface ProProfile extends BaseProfile {
   whatsapp?: string;
 }
 
-export type Profile = StandardProfile | ProProfile;
+export type Profile = BuyerProfile | StandardProfile | ProProfile;
 
 export function isProProfile(profile: Profile | null | undefined): profile is ProProfile {
   return Boolean(profile && profile.account_tier === 'PRO');
+}
+
+export function isStandardProfile(profile: Profile | null | undefined): profile is StandardProfile {
+  return Boolean(profile && profile.account_tier === 'STANDARD');
+}
+
+export function isBuyerProfile(profile: Profile | null | undefined): profile is BuyerProfile {
+  return Boolean(profile && profile.account_tier === 'BUYER');
 }
 
 
@@ -181,6 +195,11 @@ export interface Product {
   images: string[];
   videos?: string[];
   media?: MediaItem[];
+  videoUrl?: string;
+  isSaved?: boolean;
+  ratingAvg?: number;
+  rating?: number;
+  urgentBadge?: string;
   city: string;
   district?: string;
   deliveryFee: number;
@@ -364,3 +383,29 @@ export interface Dispute {
   resolutionNotes?: string;
   createdAt: string;
 }
+
+export interface PartnerAd {
+  id: string;
+  partnerName: string;
+  contactPerson: string;
+  contactEmail: string;
+  contactPhone: string;
+  city: string;
+  country: string;
+  title: string;
+  tagline: string;
+  mediaUrl: string;
+  mediaType: 'image' | 'video';
+  targetUrl: string;
+  ctaText: string;
+  pack: 'DISCOVERY_7D' | 'VISIBILITY_30D' | 'VIP_HERO_90D';
+  priceFcfa: number;
+  paymentMethod: 'AIRTEL_MONEY' | 'MOOV_MONEY' | 'BANK_TRANSFER';
+  paymentStatus: 'PAID' | 'PENDING' | 'REFUNDED';
+  adStatus: 'ACTIVE' | 'PENDING_APPROVAL' | 'PAUSED';
+  invoiceNumber: string;
+  impressionsCount: number;
+  clicksCount: number;
+  createdAt: string;
+}
+

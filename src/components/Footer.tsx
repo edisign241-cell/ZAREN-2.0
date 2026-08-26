@@ -81,6 +81,11 @@ export default function Footer() {
                   Espace Vendeur
                 </Link>
               </li>
+              <li>
+                <Link href="/partners/advertise" className="text-[#008A45] font-bold hover:underline transition">
+                  📢 Régie Pub & Partenariats
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -123,13 +128,20 @@ export default function Footer() {
               <img src="/logo.png" alt="ZARÉN" className="w-full h-full object-contain" />
             </div>
             <span>© 2026 ZARÉN Technologies. Tous droits réservés.</span>
-          </div>
-          <div className="flex gap-6">
-            <Link href="/#concept" className="hover:text-[#111111] transition">
-              Conditions Générales
+            
+            {/* BOUTON CACHÉ ADMINISTRATEUR GÉNÉRAL */}
+            <Link
+              href="/admin"
+              title="Accès Administrateur Général ZARÉN"
+              className="opacity-15 hover:opacity-100 hover:text-[#008A45] transition-opacity p-1 text-[11px] inline-flex items-center ml-1"
+            >
+              <span>🔒</span>
             </Link>
-            <Link href="/#securite" className="hover:text-[#111111] transition">
-              Politique de Sécurité
+          </div>
+
+          <div className="flex gap-6">
+            <Link href="/partners/advertise" className="hover:text-[#008A45] transition">
+              Espace Annonceurs
             </Link>
             <Link href="/seller/dashboard" className="hover:text-[#111111] transition">
               Support & Litiges
@@ -140,3 +152,4 @@ export default function Footer() {
     </footer>
   );
 }
+

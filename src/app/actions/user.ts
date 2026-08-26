@@ -66,8 +66,11 @@ export async function updateUserAvatar(formData: FormData): Promise<AvatarUpload
 
     // 3. Revalidation de cache Next.js (App Router / Vercel CDN)
     revalidatePath('/profile');
+    revalidatePath('/profile/[id]', 'page');
     revalidatePath('/profile/settings');
     revalidatePath('/seller/dashboard');
+    revalidatePath('/map');
+    revalidatePath('/p/[code]', 'page');
     revalidatePath('/');
 
     return {

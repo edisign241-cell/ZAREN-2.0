@@ -1,6 +1,35 @@
 import { Product, Order, Review, Dispute, SellerProfile, OrderStatus, Conversation, Message, ProductOffer } from '@/types';
-import { MOCK_PRODUCTS, MOCK_SELLER, MOCK_ORDERS, MOCK_REVIEWS, MOCK_CONVERSATIONS, MOCK_MESSAGES, MOCK_OFFERS } from './mockData';
 import { EscrowStateMachine } from '@/lib/escrow/stateMachine';
+
+const DEFAULT_SELLER_PROFILE: SellerProfile = {
+  id: 'usr_seller_main',
+  userId: 'usr_seller_main',
+  businessName: 'Boutique ZARÉN',
+  username: '@boutique_zaren',
+  slug: 'boutique-zaren',
+  bio: 'Vendeur officiel sur ZARÉN avec séquestre Mobile Money certifié.',
+  logoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+  bannerUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
+  isVerified: true,
+  account_tier: 'STANDARD',
+  plan: 'STANDARD',
+  ratingAvg: 5.0,
+  ratingCount: 0,
+  totalSalesCount: 0,
+  completedSalesCount: 0,
+  disputeRatePercent: 0,
+  payoutMethod: 'AIRTEL_MONEY',
+  payoutAccountNumber: '+241 07 00 00 00',
+  payoutAccountName: 'Compte Vendeur ZARÉN',
+  city: 'Libreville',
+  district: 'Centre',
+  country: 'Gabon',
+  address: 'Libreville, Gabon',
+  shopHours: '08h30 - 19h00',
+  whatsapp: '+241 07 00 00 00',
+  createdAt: new Date().toISOString(),
+};
 
 class ZarénStore {
   private products: Product[] = [];
@@ -10,7 +39,7 @@ class ZarénStore {
   private conversations: Conversation[] = [];
   private messages: Message[] = [];
   private offers: ProductOffer[] = [];
-  private seller: SellerProfile = MOCK_SELLER;
+  private seller: SellerProfile = DEFAULT_SELLER_PROFILE;
   private initialized: boolean = false;
 
   constructor() {
@@ -26,22 +55,24 @@ class ZarénStore {
       const storedConversations = localStorage.getItem('zaren_conversations');
       const storedMessages = localStorage.getItem('zaren_messages');
       const storedOffers = localStorage.getItem('zaren_offers');
+      const storedSeller = localStorage.getItem('zaren_seller_profile');
 
-      this.products = storedProducts ? JSON.parse(storedProducts) : [...MOCK_PRODUCTS];
-      this.orders = storedOrders ? JSON.parse(storedOrders) : [...MOCK_ORDERS];
-      this.reviews = storedReviews ? JSON.parse(storedReviews) : [...MOCK_REVIEWS];
+      this.products = storedProducts ? JSON.parse(storedProducts) : [];
+      this.orders = storedOrders ? JSON.parse(storedOrders) : [];
+      this.reviews = storedReviews ? JSON.parse(storedReviews) : [];
       this.disputes = storedDisputes ? JSON.parse(storedDisputes) : [];
-      this.conversations = storedConversations ? JSON.parse(storedConversations) : [...MOCK_CONVERSATIONS];
-      this.messages = storedMessages ? JSON.parse(storedMessages) : [...MOCK_MESSAGES];
-      this.offers = storedOffers ? JSON.parse(storedOffers) : [...MOCK_OFFERS];
+      this.conversations = storedConversations ? JSON.parse(storedConversations) : [];
+      this.messages = storedMessages ? JSON.parse(storedMessages) : [];
+      this.offers = storedOffers ? JSON.parse(storedOffers) : [];
+      this.seller = storedSeller ? JSON.parse(storedSeller) : DEFAULT_SELLER_PROFILE;
     } else {
-      this.products = [...MOCK_PRODUCTS];
-      this.orders = [...MOCK_ORDERS];
-      this.reviews = [...MOCK_REVIEWS];
+      this.products = [];
+      this.orders = [];
+      this.reviews = [];
       this.disputes = [];
-      this.conversations = [...MOCK_CONVERSATIONS];
-      this.messages = [...MOCK_MESSAGES];
-      this.offers = [...MOCK_OFFERS];
+      this.conversations = [];
+      this.messages = [];
+      this.offers = [];
     }
     this.initialized = true;
   }
@@ -55,6 +86,7 @@ class ZarénStore {
       localStorage.setItem('zaren_conversations', JSON.stringify(this.conversations));
       localStorage.setItem('zaren_messages', JSON.stringify(this.messages));
       localStorage.setItem('zaren_offers', JSON.stringify(this.offers));
+      localStorage.setItem('zaren_seller_profile', JSON.stringify(this.seller));
     }
   }
 

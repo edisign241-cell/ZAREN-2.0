@@ -152,15 +152,15 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     if (role === 'PRO') {
       login({
-        identifier: '+24107458812',
-        phone: '+24107458812',
-        name: 'Marlène Obame (Vendeuse Pro)',
+        identifier: `${country.phonePrefix} 07 00 00 01`,
+        phone: `${country.phonePrefix} 07 00 00 01`,
+        name: 'Vendeur Pro Officiel',
       });
     } else {
       login({
-        identifier: '+241062334455',
-        phone: '+241062334455',
-        name: 'Patrick Nguema (Client)',
+        identifier: `${country.phonePrefix} 06 00 00 01`,
+        phone: `${country.phonePrefix} 06 00 00 01`,
+        name: 'Client Acheteur',
       });
     }
     setIsLoading(false);
@@ -401,8 +401,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
                   onChange={(e) => setName(e.target.value)}
                   placeholder={
                     selectedTier === 'PRO'
-                      ? 'Ex: Marlène Obame ou Chic Store'
-                      : 'Ex: Patrick Nguema'
+                      ? 'Ex: Prestige Mode ou Chic Store'
+                      : 'Ex: Christian Ondo'
                   }
                   className="w-full text-xs font-semibold px-3.5 py-2.5 bg-[#F8F8F8] border border-gray-200 focus:border-[#008A45] focus:bg-white rounded-xl outline-hidden transition"
                 />

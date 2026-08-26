@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -28,127 +28,25 @@ import {
   Sparkles
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-
-const MOCK_SHOP_DETAILS = {
-  id: 'marlene-dressing',
-  name: 'Marlène Dressing & High-Tech',
-  slogan: 'Vêtements chics importés & Accessoires Apple d\'origine certifiée',
-  description: 'Boutique premium certifiée à Libreville depuis 2022. Tous nos produits sont neufs, testés et garantis conformes sous séquestre ZARÉN.',
-  logo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-  banner: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80',
-  city: 'Libreville',
-  district: 'Quartier Louis',
-  address: 'Galerie Marchande Louis, Rez-de-chaussée, Boutique N°14',
-  phone: '+241 07 45 88 12',
-  whatsapp: '+24107458812',
-  openingHours: 'Lun - Sam : 08h30 - 19h00 • Dimanche : 10h00 - 16h00',
-  rating: 4.9,
-  reviewsCount: 84,
-  salesCount: 142,
-  satisfactionRate: '99%',
-  isVerified: true,
-  isProSubscriber: true,
-  badges: [
-    'Badge Vendeur Vérifié ZARÉN',
-    'Expédition Express < 2h',
-    'Retour Gratuit sous 48h',
-    'Paiement Séquestre 100% Garanti'
-  ]
-};
-
-const MOCK_SHOP_PRODUCTS = [
-  {
-    id: 'prod_1',
-    shortCode: 'zrn-ip14',
-    title: 'iPhone 14 Pro Max 256Go Deep Purple - État Neuf Batterie 96%',
-    price: 480000,
-    images: ['https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80'],
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    category: 'PHONES',
-    isSaved: false,
-    rating: 5.0,
-    reviews: 28
-  },
-  {
-    id: 'prod_2',
-    shortCode: 'zrn-wig1',
-    title: 'Perruque Lace Front HD 13x4 Cheveux 100% Naturels Brésiliens 26 Pouces',
-    price: 85000,
-    images: ['https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80'],
-    videoUrl: null,
-    category: 'BEAUTY',
-    isSaved: false,
-    rating: 4.9,
-    reviews: 19
-  },
-  {
-    id: 'prod_5',
-    shortCode: 'zrn-dr01',
-    title: 'Robe de Soirée Élégante Haute Couture Soie Satinée Émeraude',
-    price: 55000,
-    images: ['https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=800&q=80'],
-    videoUrl: null,
-    category: 'WOMEN_FASHION',
-    isSaved: false,
-    rating: 4.8,
-    reviews: 14
-  },
-  {
-    id: 'prod_6',
-    shortCode: 'zrn-airp',
-    title: 'Apple AirPods Pro 2ème Génération USB-C avec Réduction de Bruit Active',
-    price: 165000,
-    images: ['https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=800&q=80'],
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    category: 'PHONES',
-    isSaved: false,
-    rating: 5.0,
-    reviews: 23
-  }
-];
-
-const INITIAL_REVIEWS = [
-  {
-    id: 'rev_1',
-    buyerName: 'Éric Mba',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    date: 'Il y a 2 jours',
-    productTitle: 'iPhone 14 Pro Max 256Go Deep Purple',
-    comment: 'Téléphone 100% conforme à l\'annonce ! Batterie impeccable et reçu avec tous les accessoires. J\'ai validé le déblocage des fonds dès la remise par le livreur. Vendeuse très pro !',
-    verifiedEscrow: true
-  },
-  {
-    id: 'rev_2',
-    buyerName: 'Christelle Nze',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    date: 'Il y a 5 jours',
-    productTitle: 'Perruque Lace Front HD 13x4 26 Pouces',
-    comment: 'La dentelle est vraiment invisible et les mèches sont soyeuses. Livraison en moins de 2h au Quartier Louis. Je recommande les yeux fermés !',
-    verifiedEscrow: true
-  },
-  {
-    id: 'rev_3',
-    buyerName: 'Patrick Ondo',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
-    rating: 5,
-    date: 'Il y a 1 semaine',
-    productTitle: 'AirPods Pro 2 USB-C',
-    comment: 'Superbe produit scellé d\'origine, son parfait et réduction active incroyable. Le séquestre Zarén rassure énormément pour ce type d\'achat.',
-    verifiedEscrow: true
-  }
-];
+import { zarenStore } from '@/db/store';
+import { Product, SellerProfile, Review } from '@/types';
 
 export default function ShopShowcasePage() {
   const params = useParams();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<'products' | 'reviews' | 'about'>('products');
-  const [products, setProducts] = useState(MOCK_SHOP_PRODUCTS);
-  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+  const [shop, setShop] = useState<SellerProfile>(zarenStore.getSellerProfile());
+  const [products, setProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+
+  useEffect(() => {
+    setShop(zarenStore.getSellerProfile());
+    setProducts(zarenStore.getProducts());
+    setReviews(zarenStore.getReviews());
+  }, []);
   
   // Modale Déposer un avis
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -159,8 +57,6 @@ export default function ShopShowcasePage() {
   // Modale Achat Express
   const [quickBuyProduct, setQuickBuyProduct] = useState<any | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-
-  const shop = MOCK_SHOP_DETAILS;
 
   const toggleSave = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -233,8 +129,8 @@ export default function ShopShowcasePage() {
           {/* Image de couverture / Bannière */}
           <div className="relative h-48 sm:h-64 md:h-72 w-full bg-neutral-900 overflow-hidden">
             <img
-              src={shop.banner}
-              alt={shop.name}
+              src={shop.bannerUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80'}
+              alt={shop.businessName}
               className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -253,14 +149,14 @@ export default function ShopShowcasePage() {
               {/* Logo & Identité */}
               <div className="flex items-end gap-4">
                 <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-white shrink-0">
-                  <img src={shop.logo} alt={shop.name} className="w-full h-full object-cover" />
+                  <img src={shop.logoUrl || shop.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'} alt={shop.businessName} className="w-full h-full object-cover" />
                   <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-[#008A45] border-2 border-white shadow-xs" title="En ligne"></span>
                 </div>
 
                 <div className="space-y-1 pb-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h1 className="text-xl sm:text-2xl font-black italic text-[#111111] tracking-tight">
-                      {shop.name}
+                      {shop.businessName}
                     </h1>
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black italic bg-emerald-50 text-[#008A45] border border-emerald-200">
                       <ShieldCheck className="w-3.5 h-3.5" /> VÉRIFIÉ
@@ -268,23 +164,23 @@ export default function ShopShowcasePage() {
                   </div>
 
                   <p className="text-xs text-gray-600 font-medium line-clamp-1 max-w-xl">
-                    {shop.slogan}
+                    {shop.bio || 'Vendeur officiel vérifié ZARÉN avec séquestre Mobile Money.'}
                   </p>
 
                   <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap pt-0.5">
                     <span className="flex items-center gap-1 text-[#d97706] font-bold">
                       <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                      <span>{shop.rating}</span>
-                      <span className="text-gray-400 font-normal">({shop.reviewsCount} avis certifiés)</span>
+                      <span>{shop.ratingAvg || 5.0}</span>
+                      <span className="text-gray-400 font-normal">({shop.ratingCount || reviews.length} avis certifiés)</span>
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-[#008A45]" />
-                      <span>{shop.city} ({shop.district})</span>
+                      <span>{shop.city} ({shop.district || 'Centre'})</span>
                     </span>
                     <span>•</span>
                     <span className="font-semibold text-emerald-800">
-                      ⚡ {shop.salesCount} ventes sous séquestre
+                      ⚡ {shop.completedSalesCount || 0} ventes sous séquestre
                     </span>
                   </div>
                 </div>
@@ -293,7 +189,7 @@ export default function ShopShowcasePage() {
               {/* Boutons d'Action Vendeur */}
               <div className="flex items-center gap-2.5 w-full md:w-auto pt-2 md:pt-0">
                 <a
-                  href={`https://wa.me/${shop.whatsapp}?text=${encodeURIComponent(`Bonjour ${shop.name}, je vous contacte depuis votre vitrine sécurisée ZARÉN.`)}`}
+                  href={`https://wa.me/${(shop.whatsapp || shop.payoutAccountNumber || '').replace(/\D/g, '')}?text=${encodeURIComponent(`Bonjour ${shop.businessName}, je vous contacte depuis votre vitrine sécurisée ZARÉN.`)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 md:flex-none px-4 py-2.5 bg-[#008A45] hover:bg-[#007339] text-white text-xs font-bold uppercase rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95"
@@ -307,7 +203,7 @@ export default function ShopShowcasePage() {
                     navigator.clipboard.writeText(window.location.href);
                     alert('📋 Lien de la vitrine copié !');
                   }}
-                  className="p-2.5 bg-[#F8F8F8] hover:bg-gray-200 text-[#111111] rounded-xl border border-[#E5E5E5] transition"
+                  className="p-2.5 bg-[#F8F8F8] hover:bg-gray-200 text-[#111111] rounded-xl border border-[#E5E5E5] transition cursor-pointer"
                   title="Partager la vitrine"
                 >
                   <Share2 className="w-4 h-4" />
@@ -318,7 +214,12 @@ export default function ShopShowcasePage() {
 
             {/* Badges de Confiance Boutique */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-gray-100 text-[11px] font-bold text-gray-700">
-              {shop.badges.map((b, idx) => (
+              {[
+                'Badge Vendeur Vérifié ZARÉN',
+                'Expédition Express < 2h',
+                'Retour Garanti sous 48h',
+                'Paiement Séquestre 100% Garanti'
+              ].map((b, idx) => (
                 <div key={idx} className="p-2 bg-[#F8F8F8] rounded-xl border border-gray-100 flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#008A45] shrink-0" />
                   <span className="truncate">{b}</span>
@@ -412,67 +313,77 @@ export default function ShopShowcasePage() {
             </div>
 
             {/* Grille des Articles */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {filteredProducts.map(p => (
-                <div
-                  key={p.id}
-                  className="card-product group flex flex-col bg-white p-3 rounded-2xl border border-[#E5E5E5] hover:border-[#008A45] transition shadow-xs"
-                >
-                  <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden rounded-xl mb-3">
-                    <img
-                      src={p.images[0]}
-                      alt={p.title}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                    />
+            {filteredProducts.length === 0 ? (
+              <div className="bg-white p-12 rounded-3xl border border-[#E5E5E5] text-center space-y-3">
+                <Store className="w-10 h-10 text-gray-300 mx-auto" />
+                <h4 className="text-sm font-bold text-gray-800">Aucun article dans cette catégorie pour le moment</h4>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                  La boutique publiera prochainement de nouvelles pièces sous garantie séquestre ZARÉN.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {filteredProducts.map(p => (
+                  <div
+                    key={p.id}
+                    className="card-product group flex flex-col bg-white p-3 rounded-2xl border border-[#E5E5E5] hover:border-[#008A45] transition shadow-xs"
+                  >
+                    <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden rounded-xl mb-3">
+                      <img
+                        src={p.images[0]}
+                        alt={p.title}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                      />
 
-                    <button
-                      onClick={(e) => toggleSave(p.id, e)}
-                      className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:bg-white cursor-pointer"
-                    >
-                      <span className="text-xs">{p.isSaved ? '❤️' : '🤍'}</span>
-                    </button>
+                      <button
+                        onClick={(e) => toggleSave(p.id, e)}
+                        className="absolute bottom-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:bg-white cursor-pointer"
+                      >
+                        <span className="text-xs">{p.isSaved ? '❤️' : '🤍'}</span>
+                      </button>
 
-                    <div className="absolute top-2.5 left-2.5 bg-[#008A45] text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-md tracking-wider shadow-sm">
-                      SÉQUESTRE
+                      <div className="absolute top-2.5 left-2.5 bg-[#008A45] text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-md tracking-wider shadow-sm">
+                        SÉQUESTRE
+                      </div>
+
+                      {p.videoUrl && (
+                        <div className="absolute top-2.5 right-2.5 bg-black/80 text-white text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                          <Play className="w-2.5 h-2.5 fill-white" />
+                          <span>Vidéo Démo</span>
+                        </div>
+                      )}
                     </div>
 
-                    {p.videoUrl && (
-                      <div className="absolute top-2.5 right-2.5 bg-black/80 text-white text-[9px] font-bold uppercase px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
-                        <Play className="w-2.5 h-2.5 fill-white" />
-                        <span>Vidéo Démo</span>
-                      </div>
-                    )}
-                  </div>
+                    <div className="flex items-baseline justify-between mb-1">
+                      <span className="text-sm sm:text-base font-black text-[#111111]">
+                        {new Intl.NumberFormat('fr-FR').format(p.price)} FCFA
+                      </span>
+                      <span className="text-[10px] text-[#008A45] font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                        ★ {p.ratingAvg || 5.0}
+                      </span>
+                    </div>
 
-                  <div className="flex items-baseline justify-between mb-1">
-                    <span className="text-sm sm:text-base font-black text-[#111111]">
-                      {new Intl.NumberFormat('fr-FR').format(p.price)} FCFA
-                    </span>
-                    <span className="text-[10px] text-[#008A45] font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
-                      ★ {p.rating}
-                    </span>
-                  </div>
-
-                  <Link
-                    href={`/p/${p.shortCode}`}
-                    className="text-xs text-[#111111] font-black italic line-clamp-2 leading-snug mb-2 group-hover:text-[#008A45] transition"
-                  >
-                    {p.title}
-                  </Link>
-
-                  <div className="mt-auto pt-2 border-t border-gray-100 space-y-2">
-                    <button
-                      onClick={() => setQuickBuyProduct(p)}
-                      className="w-full py-2 bg-emerald-50 hover:bg-[#008A45] text-[#008A45] hover:text-white border border-emerald-200 text-[11px] font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    <Link
+                      href={`/p/${p.shortCode}`}
+                      className="text-xs text-[#111111] font-black italic line-clamp-2 leading-snug mb-2 group-hover:text-[#008A45] transition"
                     >
-                      <Zap className="w-3 h-3" />
-                      <span>Achat Express Séquestre</span>
-                    </button>
-                  </div>
+                      {p.title}
+                    </Link>
 
-                </div>
-              ))}
-            </div>
+                    <div className="mt-auto pt-2 border-t border-gray-100 space-y-2">
+                      <button
+                        onClick={() => setQuickBuyProduct(p)}
+                        className="w-full py-2 bg-emerald-50 hover:bg-[#008A45] text-[#008A45] hover:text-white border border-emerald-200 text-[11px] font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <Zap className="w-3 h-3" />
+                        <span>Achat Express Séquestre</span>
+                      </button>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -485,37 +396,30 @@ export default function ShopShowcasePage() {
               
               <div className="md:col-span-4 text-center md:border-r md:border-gray-100 md:pr-6 space-y-1">
                 <div className="text-4xl sm:text-5xl font-black italic text-[#111111] font-mono">
-                  {shop.rating}
+                  {shop.ratingAvg || 5.0}
                 </div>
                 <div className="flex items-center justify-center gap-1 text-amber-500">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-5 h-5 fill-amber-500" />
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 font-medium">Basé sur {shop.reviewsCount} achats vérifiés par Séquestre</p>
+                <p className="text-xs text-gray-500 font-medium">Basé sur {shop.ratingCount || reviews.length} achats vérifiés par Séquestre</p>
               </div>
 
               <div className="md:col-span-5 space-y-2 text-xs font-semibold">
                 <div className="flex items-center gap-2">
                   <span className="w-6 text-gray-500">5★</span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#008A45] rounded-full w-[92%]"></div>
+                    <div className="h-full bg-[#008A45] rounded-full w-[95%]"></div>
                   </div>
-                  <span className="w-8 text-right text-gray-500">92%</span>
+                  <span className="w-8 text-right text-gray-500">95%</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-6 text-gray-500">4★</span>
                   <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#008A45] rounded-full w-[7%]"></div>
+                    <div className="h-full bg-[#008A45] rounded-full w-[5%]"></div>
                   </div>
-                  <span className="w-8 text-right text-gray-500">7%</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-6 text-gray-500">3★</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#008A45] rounded-full w-[1%]"></div>
-                  </div>
-                  <span className="w-8 text-right text-gray-500">1%</span>
+                  <span className="w-8 text-right text-gray-500">5%</span>
                 </div>
               </div>
 
@@ -536,42 +440,50 @@ export default function ShopShowcasePage() {
                 Derniers avis certifiés ({reviews.length})
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {reviews.map(rev => (
-                  <div key={rev.id} className="bg-white p-5 rounded-2xl border border-[#E5E5E5] space-y-3 shadow-xs">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <img src={rev.avatar} alt={rev.buyerName} className="w-10 h-10 rounded-full object-cover border border-[#E5E5E5]" />
-                        <div>
-                          <h4 className="text-xs font-bold text-[#111111]">{rev.buyerName}</h4>
-                          <span className="text-[10px] text-gray-400 font-medium">{rev.date}</span>
+              {reviews.length === 0 ? (
+                <div className="bg-white p-8 rounded-2xl border border-[#E5E5E5] text-center space-y-2">
+                  <Star className="w-8 h-8 text-gray-300 mx-auto" />
+                  <p className="text-xs text-gray-500 font-medium">Aucun avis déposé pour le moment.</p>
+                  <p className="text-[11px] text-gray-400">Les évaluations certifiées apparaîtront après confirmation de réception des commandes.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {reviews.map(rev => (
+                    <div key={rev.id} className="bg-white p-5 rounded-2xl border border-[#E5E5E5] space-y-3 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <img src={rev.avatar || rev.authorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'} alt={rev.buyerName || rev.authorName} className="w-10 h-10 rounded-full object-cover border border-[#E5E5E5]" />
+                          <div>
+                            <h4 className="text-xs font-bold text-[#111111]">{rev.buyerName || rev.authorName}</h4>
+                            <span className="text-[10px] text-gray-400 font-medium">{rev.date || 'Récemment'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center text-amber-500">
+                          {[...Array(rev.rating || 5)].map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
+                          ))}
                         </div>
                       </div>
 
-                      <div className="flex items-center text-amber-500">
-                        {[...Array(rev.rating)].map((_, i) => (
-                          <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
-                        ))}
+                      <div className="p-2 bg-[#F8F8F8] rounded-xl border border-gray-100 text-[11px] text-gray-600 font-medium">
+                        Article acheté : <strong>{rev.productTitle || 'Article certifié'}</strong>
+                      </div>
+
+                      <p className="text-xs text-gray-700 leading-relaxed font-medium">
+                        « {rev.comment} »
+                      </p>
+
+                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
+                        <span className="inline-flex items-center gap-1 text-[#008A45] font-bold">
+                          <ShieldCheck className="w-3.5 h-3.5" /> Achat vérifié par Séquestre
+                        </span>
+                        <span className="text-gray-400">✓ Livré à {shop.city}</span>
                       </div>
                     </div>
-
-                    <div className="p-2 bg-[#F8F8F8] rounded-xl border border-gray-100 text-[11px] text-gray-600 font-medium">
-                      Article acheté : <strong>{rev.productTitle}</strong>
-                    </div>
-
-                    <p className="text-xs text-gray-700 leading-relaxed font-medium">
-                      « {rev.comment} »
-                    </p>
-
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
-                      <span className="inline-flex items-center gap-1 text-[#008A45] font-bold">
-                        <ShieldCheck className="w-3.5 h-3.5" /> Achat vérifié par Séquestre
-                      </span>
-                      <span className="text-gray-400">✓ Livré à Libreville</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>
@@ -582,10 +494,10 @@ export default function ShopShowcasePage() {
           <div className="bg-white rounded-3xl p-6 md:p-8 border border-[#E5E5E5] shadow-xs space-y-6 animate-fade-in">
             <div>
               <h2 className="text-base font-black italic uppercase text-[#111111] mb-2">
-                À propos de {shop.name}
+                À propos de {shop.businessName}
               </h2>
               <p className="text-xs text-gray-700 leading-relaxed font-medium">
-                {shop.description}
+                {shop.bio || 'Boutique vérifiée sur ZARÉN avec séquestre Mobile Money.'}
               </p>
             </div>
 
@@ -609,7 +521,7 @@ export default function ShopShowcasePage() {
                   </div>
                   <div>
                     <h3 className="text-xs font-bold text-[#111111]">Horaires d'Ouverture</h3>
-                    <p className="text-xs text-gray-600 font-medium mt-0.5">{shop.openingHours}</p>
+                    <p className="text-xs text-gray-600 font-medium mt-0.5">{shop.shopHours || 'Lun - Sam : 08h30 - 19h00'}</p>
                   </div>
                 </div>
 
@@ -619,7 +531,7 @@ export default function ShopShowcasePage() {
                   </div>
                   <div>
                     <h3 className="text-xs font-bold text-[#111111]">Service Client & SAV</h3>
-                    <p className="text-xs font-mono font-bold text-gray-800 mt-0.5">{shop.phone}</p>
+                    <p className="text-xs font-mono font-bold text-gray-800 mt-0.5">{shop.whatsapp || shop.payoutAccountNumber || '+241 07 45 88 12'}</p>
                   </div>
                 </div>
               </div>
@@ -637,7 +549,7 @@ export default function ShopShowcasePage() {
                 </div>
 
                 <a
-                  href={`https://wa.me/${shop.whatsapp}`}
+                  href={`https://wa.me/${(shop.whatsapp || shop.payoutAccountNumber || '').replace(/\D/g, '')}?text=${encodeURIComponent(`Bonjour ${shop.businessName}, j'ai une question sur vos articles ZARÉN.`)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="w-full py-3 bg-[#008A45] hover:bg-[#007339] text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-sm transition"
@@ -724,7 +636,7 @@ export default function ShopShowcasePage() {
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-black italic text-sm text-[#111111]">Achat Sécurisé {shop.name}</h3>
+                  <h3 className="font-black italic text-sm text-[#111111]">Achat Sécurisé {shop.businessName}</h3>
                   <span className="text-[10px] text-gray-500 font-medium">Séquestre Mobile Money Garanti</span>
                 </div>
               </div>

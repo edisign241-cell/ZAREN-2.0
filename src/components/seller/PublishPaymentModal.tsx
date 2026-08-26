@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { ShieldCheck, Zap, X, CheckCircle2, Lock, Smartphone, CreditCard, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+import { useAuth } from '@/context/AuthContext';
+
 interface PublishPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,8 +23,14 @@ export default function PublishPaymentModal({
   productPrice,
   onPaymentSuccess,
 }: PublishPaymentModalProps) {
-  const [method, setMethod] = useState<'AIRTEL_MONEY' | 'MOOV_MONEY' | 'CARD'>('AIRTEL_MONEY');
-  const [phone, setPhone] = useState('+241 07 45 88 12');
+  const { selectedCountry } = useAuth();
+  const operators = selectedCountry.mobileMoneyOperators || [
+    { id: 'AIRTEL_MONEY', name: 'Airtel Money', color: 'red' },
+    { id: 'MOOV_MONEY', name: 'Moov Money', color: 'blue' }
+  ];
+
+  const [method, setMethod] = useState<string>(operators[0]?.id || 'AIRTEL_MONEY');
+  const [phone, setPhone] = useState(`${selectedCountry.phonePrefix} 07 45 88 12`);
   const [cardNumber, setCardNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -122,31 +130,21 @@ export default function PublishPaymentModal({
               Choisir votre moyen de paiement :
             </label>
             <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setMethod('AIRTEL_MONEY')}
-                className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
-                  method === 'AIRTEL_MONEY'
-                    ? 'border-[#008A45] bg-emerald-50 text-[#008A45] font-black ring-2 ring-[#008A45]/20'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                }`}
-              >
-                <Smartphone className="w-4 h-4 mx-auto mb-1 text-red-600" />
-                <span className="text-[11px] block leading-tight">Airtel Money</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMethod('MOOV_MONEY')}
-                className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
-                  method === 'MOOV_MONEY'
-                    ? 'border-[#008A45] bg-emerald-50 text-[#008A45] font-black ring-2 ring-[#008A45]/20'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                }`}
-              >
-                <Smartphone className="w-4 h-4 mx-auto mb-1 text-blue-600" />
-                <span className="text-[11px] block leading-tight">Moov Money</span>
-              </button>
+              {operators.map((op) => (
+                <button
+                  key={op.id}
+                  type="button"
+                  onClick={() => setMethod(op.id)}
+                  className={`p-2.5 rounded-xl border text-center transition cursor-pointer ${
+                    method === op.id
+                      ? 'border-[#008A45] bg-emerald-50 text-[#008A45] font-black ring-2 ring-[#008A45]/20'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  <Smartphone className="w-4 h-4 mx-auto mb-1 text-[#008A45]" />
+                  <span className="text-[11px] block leading-tight">{op.name}</span>
+                </button>
+              ))}
 
               <button
                 type="button"
@@ -167,14 +165,14 @@ export default function PublishPaymentModal({
           {method !== 'CARD' ? (
             <div className="space-y-1">
               <label className="text-xs font-bold text-gray-700 block">
-                Numéro {method === 'AIRTEL_MONEY' ? 'Airtel Money' : 'Moov Money'} *
+                Numéro Mobile Money ({operators.find(o => o.id === method)?.name || 'Mobile Money'}) *
               </label>
               <input
                 type="tel"
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+241 07 45 88 12"
+                placeholder={`${selectedCountry.phonePrefix} 07 45 88 12`}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-[#008A45] text-xs font-mono font-bold outline-hidden transition"
               />
               <p className="text-[10px] text-gray-400">

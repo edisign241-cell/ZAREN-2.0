@@ -34,13 +34,11 @@ export function middleware(request: any) {
     request.cookies.has('zaren_auth_token') ||
     request.cookies.has('sb-vhelgezdnrrnlutboacv-auth-token');
 
-  // 4. Routes protégées nécessitant une authentification explicite
-  const isProtectedPath =
-    pathname.startsWith('/seller') ||
-    pathname.startsWith('/profile/settings') ||
-    pathname.startsWith('/messages');
+  // 4. Routes protégées nécessitant une redirection stricte
+  const isStrictlyProtectedPath =
+    pathname.startsWith('/seller/dashboard') && !hasAuthCookie;
 
-  if (isProtectedPath && !hasAuthCookie) {
+  if (isStrictlyProtectedPath) {
     const loginUrl = new URL('/', request.url);
     loginUrl.searchParams.set('auth', 'required');
     loginUrl.searchParams.set('redirectTo', pathname + search);

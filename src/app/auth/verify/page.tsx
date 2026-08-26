@@ -9,7 +9,9 @@ function VerifyOtpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const phone = searchParams.get('phone') || '+241 07 45 88 12';
-  const channel = searchParams.get('channel') || 'WHATSAPP';
+  const email = searchParams.get('email') || 'client@zaren.ga';
+  const channel = (searchParams.get('channel') || 'WHATSAPP').toUpperCase();
+  const targetDestination = channel === 'EMAIL' ? email : phone;
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(45);
@@ -64,24 +66,27 @@ function VerifyOtpContent() {
   };
 
   return (
-    <div className="min-h-[85vh] p-6 flex flex-col justify-between animate-fade-in bg-white max-w-md mx-auto rounded-3xl border border-[#E5E5E5] shadow-xs my-8">
+    <div className="min-h-[85vh] p-6 flex flex-col justify-between animate-fade-in bg-white max-w-md mx-auto rounded-3xl border border-[#E5E5E5] shadow-xs my-8 font-sans">
       <div>
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-[#111111] mb-6"
+          className="flex items-center gap-1 text-xs font-bold text-gray-500 hover:text-[#111111] mb-6 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Modifier le numéro</span>
+          <span>Modifier mes coordonnées</span>
         </button>
 
         <div className="mb-8">
           <span className="text-xl font-black italic tracking-tight text-[#111111] block mb-1">
-            Vérification du code OTP
+            Vérification du code de sécurité
           </span>
           <p className="text-xs text-gray-500 leading-relaxed">
             Nous avons envoyé un code de confirmation à 6 chiffres par{' '}
-            <strong className="text-[#111111]">{channel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'}</strong> au{' '}
-            <strong className="text-[#008A45]">{phone}</strong>.
+            <strong className="text-[#111111]">
+              {channel === 'EMAIL' ? 'E-mail' : channel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'}
+            </strong>{' '}
+            à :{' '}
+            <strong className="text-[#008A45]">{targetDestination}</strong>.
           </p>
         </div>
 

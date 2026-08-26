@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from '@/context/AuthContext';
-import AuthGate from '@/components/auth/AuthGate';
+import { CartProvider } from '@/context/CartContext';
 
 export default function RootLayout({
   children,
@@ -42,9 +42,9 @@ export default function RootLayout({
     <html lang="fr" className="scroll-smooth bg-[#F8F8F8]">
       <body className={`${inter.className} min-h-screen flex flex-col bg-[#F8F8F8] text-[#111111] antialiased selection:bg-[#008A45] selection:text-white`}>
         <AuthProvider>
-          <AuthGate>
+          <CartProvider>
             {children}
-          </AuthGate>
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

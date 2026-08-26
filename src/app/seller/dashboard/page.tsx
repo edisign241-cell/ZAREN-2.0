@@ -37,7 +37,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { zarenStore } from '@/db/store';
-import { Order, Product, SellerProfile, OrderStatus } from '@/types';
+import { Order, Product, SellerProfile, OrderStatus, Review } from '@/types';
 import { formatPrice, formatDate } from '@/lib/utils';
 import ShareButton from '@/components/product/ShareButton';
 
@@ -66,22 +66,39 @@ export default function SellerDashboardPage() {
   const [seller, setSeller] = useState<SellerProfile>(zarenStore.getSellerProfile());
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'ORDERS' | 'PRODUCTS' | 'ANALYTICS'>('OVERVIEW');
   const [orderFilter, setOrderFilter] = useState<'ALL' | 'ACTIVE' | 'COMPLETED'>('ALL');
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   
   // Modale de retrait Mobile Money
   const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
-  const [payoutAmount, setPayoutAmount] = useState('150000');
+  const [payoutAmount, setPayoutAmount] = useState('50000');
   const [payoutProvider, setPayoutProvider] = useState<'AIRTEL' | 'MOOV'>('AIRTEL');
   const [payoutSuccessMsg, setPayoutSuccessMsg] = useState<string | null>(null);
 
-  // Solde disponible retirable
-  const [availableBalance, setAvailableBalance] = useState(758000);
+  // Solde disponible retirable calculé
+  const totalRevenue = orders
+    .filter((o) => o.status === 'COMPLETED')
+    .reduce((sum, o) => sum + (o.totalAmount - o.platformFee), 0);
+
+  const escrowLockedAmount = orders
+    .filter((o) => ['PAID', 'PREPARING', 'IN_TRANSIT', 'DELIVERED', 'DISPUTED'].includes(o.status))
+    .reduce((sum, o) => sum + (o.totalAmount - o.platformFee), 0);
+
+  const [availableBalance, setAvailableBalance] = useState(totalRevenue);
 
   const refreshData = () => {
-    setOrders(zarenStore.getOrders());
-    setProducts(zarenStore.getProducts());
+    const fetchedOrders = zarenStore.getOrders();
+    const fetchedProducts = zarenStore.getProducts();
+    const fetchedReviews = zarenStore.getReviews();
+    setOrders(fetchedOrders);
+    setProducts(fetchedProducts);
+    setReviews(fetchedReviews);
+    const rev = fetchedOrders
+      .filter((o) => o.status === 'COMPLETED')
+      .reduce((sum, o) => sum + (o.totalAmount - o.platformFee), 0);
+    setAvailableBalance(rev);
   };
 
   useEffect(() => {
@@ -96,13 +113,6 @@ export default function SellerDashboardPage() {
       alert('Action non autorisée sur cette commande.');
     }
   };
-
-  // Calculs financiers
-  const escrowLockedAmount = orders
-    .filter((o) => ['PAID', 'PREPARING', 'IN_TRANSIT', 'DELIVERED', 'DISPUTED'].includes(o.status))
-    .reduce((sum, o) => sum + (o.totalAmount - o.platformFee), 0) || 482000;
-
-  const totalRevenue = 1240000;
 
   const handleRequestPayout = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,14 +149,15 @@ export default function SellerDashboardPage() {
         <StandardProfileView
           user={{
             id: currentUser?.id || 'usr_seller_standard',
-            name: currentUser?.name || 'Marlène Obame',
-            username: currentUser?.username || '@marlene_dressing',
+            name: currentUser?.name || 'Vendeur Standard',
+            username: currentUser?.username || '@vendeur_zaren',
             avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
             city: currentUser?.city || 'Libreville',
-            district: currentUser?.district || 'Quartier Louis',
-            ratingAvg: currentUser?.ratingAvg || 4.9,
-            ratingCount: currentUser?.ratingCount || 12,
-            completedSalesCount: currentUser?.completedSalesCount || 24,
+            district: currentUser?.district || 'Centre',
+            phone: currentUser?.phone,
+            ratingAvg: currentUser?.ratingAvg ?? 5.0,
+            ratingCount: reviews.length,
+            completedSalesCount: orders.filter(o => o.status === 'COMPLETED').length,
             escrowBalance: availableBalance,
           }}
           products={products}
@@ -174,7 +185,7 @@ export default function SellerDashboardPage() {
           <div className="flex items-center gap-3.5 sm:gap-4">
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden border-2 border-[#008A45] shadow-sm bg-neutral-100 shrink-0">
               <img
-                src={seller.logoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'}
+                src={seller.logoUrl || currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'}
                 alt="Logo Boutique"
                 className="w-full h-full object-cover"
               />
@@ -184,7 +195,7 @@ export default function SellerDashboardPage() {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-base sm:text-xl font-black italic text-[#111111] tracking-tight">
-                  {seller.businessName || 'Marlène Dressing & High-Tech'}
+                  {seller.businessName || currentUser?.businessName || 'Boutique Pro ZARÉN'}
                 </h1>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black italic bg-emerald-50 text-[#008A45] border border-emerald-200">
                   <ShieldCheck className="w-3.5 h-3.5" /> VÉRIFIÉ
@@ -195,11 +206,11 @@ export default function SellerDashboardPage() {
               </div>
 
               <p className="text-xs text-gray-500 font-medium mt-0.5 flex items-center gap-2 flex-wrap">
-                <span>📍 Libreville (Louis)</span>
+                <span>📍 {seller.city || currentUser?.city || 'Libreville'} ({seller.district || currentUser?.district || 'Centre'})</span>
                 <span>•</span>
-                <span className="text-[#d97706] font-bold">★ 4.9 (84 avis)</span>
+                <span className="text-[#d97706] font-bold">★ {seller.ratingAvg || currentUser?.ratingAvg || 5.0} ({reviews.length} avis)</span>
                 <span>•</span>
-                <span className="text-emerald-700 font-semibold">142 ventes validées</span>
+                <span className="text-emerald-700 font-semibold">{orders.filter(o => o.status === 'COMPLETED').length} ventes validées</span>
               </p>
             </div>
           </div>
@@ -935,7 +946,7 @@ export default function SellerDashboardPage() {
                   <input
                     type="tel"
                     readOnly
-                    value="+241 07 45 88 12 (Marlène Obame)"
+                    value={`${seller.payoutAccountNumber || currentUser?.phone || '+241 07 00 00 00'} (${currentUser?.name || seller.businessName || 'Compte Vendeur'})`}
                     className="w-full text-xs font-mono font-bold p-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
                   />
                 </div>

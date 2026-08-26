@@ -42,7 +42,7 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section id="concept" className="py-16 md:py-24 bg-white border-b border-[#E5E5E5]">
+    <section id="comment-ca-marche" className="py-16 md:py-24 bg-white border-b border-[#E5E5E5]">
       <div className="max-w-6xl mx-auto px-4 space-y-16">
         
         {/* En-tête de section */}

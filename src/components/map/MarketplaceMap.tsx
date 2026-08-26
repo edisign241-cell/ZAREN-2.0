@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { ShopLocation, MapFilterState } from '@/types';
-import { MOCK_SHOPS } from '@/db/mockData';
+import { zarenStore } from '@/db/store';
 import {
   Search,
   MapPin,
@@ -206,9 +206,34 @@ export default function MarketplaceMap() {
     );
   };
 
+  // 4. Récupération des boutiques réelles
+  const availableShops: ShopLocation[] = useMemo(() => {
+    const seller = zarenStore.getSellerProfile();
+    const list: ShopLocation[] = [
+      {
+        id: seller.id || 'shop_pro_1',
+        name: seller.businessName || 'Boutique Officielle ZARÉN',
+        photo: seller.logoUrl || seller.bannerUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
+        latitude: 0.4045,
+        longitude: 9.4431,
+        address: seller.address || 'Quartier Louis, Libreville',
+        city: seller.city || 'Libreville',
+        district: seller.district || 'Louis',
+        category: 'Smartphones & High-Tech',
+        rating: seller.ratingAvg || 5.0,
+        reviewCount: seller.ratingCount || 0,
+        description: seller.bio || 'Vendeur vérifié sous séquestre ZARÉN.',
+        phone: seller.whatsapp || seller.payoutAccountNumber || '+241 07 45 88 12',
+        isVerified: seller.isVerified,
+        isOpen: true
+      }
+    ];
+    return list;
+  }, []);
+
   // 4. Filtrage et tri des boutiques
   const shopsWithDistance = useMemo(() => {
-    return MOCK_SHOPS.map((shop) => {
+    return availableShops.map((shop) => {
       let distanceKm: number | undefined;
       if (userLocation) {
         distanceKm = calculateDistanceKm(
@@ -248,7 +273,7 @@ export default function MarketplaceMap() {
       }
       return b.rating - a.rating;
     });
-  }, [userLocation, filters]);
+  }, [availableShops, userLocation, filters]);
 
   // 5. Rendu des marqueurs sur Leaflet
   useEffect(() => {

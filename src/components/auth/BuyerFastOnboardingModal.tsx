@@ -7,6 +7,8 @@ import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/lib/utils';
 import { Product } from '@/types';
 
+import { CENTRAL_AFRICA_COUNTRIES } from '@/lib/geo/countries';
+
 interface BuyerFastOnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,16 +23,26 @@ export default function BuyerFastOnboardingModal({
   redirectTo,
 }: BuyerFastOnboardingModalProps) {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, selectedCountry } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [city, setCity] = useState('Libreville');
-  const [district, setDistrict] = useState('Centre');
+  const [countryCode, setCountryCode] = useState(selectedCountry?.code || 'GA');
+  const activeCountry = CENTRAL_AFRICA_COUNTRIES.find(c => c.code === countryCode) || selectedCountry;
+  const [city, setCity] = useState(activeCountry.defaultCity);
+  const [district, setDistrict] = useState(activeCountry.defaultDistrict || 'Centre');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleCountrySelect = (code: string) => {
+    setCountryCode(code);
+    const countryObj = CENTRAL_AFRICA_COUNTRIES.find(c => c.code === code) || CENTRAL_AFRICA_COUNTRIES[0];
+    if (countryObj.cities.length > 0) {
+      setCity(countryObj.cities[0]);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,10 +60,12 @@ export default function BuyerFastOnboardingModal({
       register({
         name: fullName.trim(),
         phone: phone.trim(),
-        country: 'Gabon 🇬🇦',
+        country: `${activeCountry.name} ${activeCountry.flag}`,
+        countryCode: activeCountry.code,
         city,
         district,
-        plan: 'STANDARD',
+        account_tier: 'BUYER',
+        plan: 'FREE',
         isPhoneVerified: true,
       });
 
@@ -142,23 +156,37 @@ export default function BuyerFastOnboardingModal({
             />
           </div>
 
-          {/* Téléphone Airtel / Moov */}
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold uppercase text-gray-600 block flex items-center gap-1">
-              <Phone className="w-3.5 h-3.5 text-[#008A45]" />
-              <span>Numéro de téléphone (Airtel Money / Moov) *</span>
-            </label>
-            <input
-              type="tel"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Ex: +241 07 45 88 12"
-              className="w-full text-xs font-mono font-bold px-3.5 py-2.5 bg-[#F8F8F8] border border-gray-200 focus:border-[#008A45] focus:bg-white rounded-xl outline-hidden transition"
-            />
-            <p className="text-[10px] text-gray-400">
-              Utilisé par le livreur pour vous joindre lors de la remise du colis.
-            </p>
+          {/* Pays & Téléphone */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold uppercase text-gray-600 block">Pays</label>
+              <select
+                value={countryCode}
+                onChange={(e) => handleCountrySelect(e.target.value)}
+                className="w-full text-xs font-semibold px-2 py-2.5 bg-[#F8F8F8] border border-gray-200 focus:border-[#008A45] rounded-xl outline-hidden"
+              >
+                {CENTRAL_AFRICA_COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} {c.code}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-span-2 space-y-1">
+              <label className="text-[11px] font-bold uppercase text-gray-600 block flex items-center gap-1">
+                <Phone className="w-3.5 h-3.5 text-[#008A45]" />
+                <span>Téléphone Mobile Money *</span>
+              </label>
+              <input
+                type="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={`Ex: ${activeCountry.phonePrefix} 07 45 88 12`}
+                className="w-full text-xs font-mono font-bold px-3.5 py-2.5 bg-[#F8F8F8] border border-gray-200 focus:border-[#008A45] focus:bg-white rounded-xl outline-hidden transition"
+              />
+            </div>
           </div>
 
           {/* Ville & Quartier */}
@@ -170,14 +198,11 @@ export default function BuyerFastOnboardingModal({
                 onChange={(e) => setCity(e.target.value)}
                 className="w-full text-xs font-semibold px-3 py-2.5 bg-[#F8F8F8] border border-gray-200 focus:border-[#008A45] rounded-xl outline-hidden"
               >
-                <option value="Libreville">Libreville (Gabon)</option>
-                <option value="Akanda">Akanda</option>
-                <option value="Owendo">Owendo</option>
-                <option value="Port-Gentil">Port-Gentil</option>
-                <option value="Franceville">Franceville</option>
-                <option value="Oyem">Oyem</option>
-                <option value="Douala">Douala (Cameroun)</option>
-                <option value="Yaoundé">Yaoundé</option>
+                {activeCountry.cities.map((ct) => (
+                  <option key={ct} value={ct}>
+                    {ct}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -187,7 +212,7 @@ export default function BuyerFastOnboardingModal({
                 type="text"
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
-                placeholder="Ex: Louis, Glass, PK8"
+                placeholder="Ex: Louis, Akwa, Centre"
                 className="w-full text-xs font-semibold px-3 py-2.5 bg-[#F8F8F8] border border-gray-200 focus:border-[#008A45] rounded-xl outline-hidden"
               />
             </div>

@@ -325,8 +325,14 @@ export default function MessagesPage() {
 
           </div>
         ) : (
-          <div className="md:col-span-8 flex items-center justify-center p-8 text-center text-xs text-gray-400">
-            Sélectionnez une discussion pour afficher les messages.
+          <div className="md:col-span-8 flex flex-col items-center justify-center p-12 text-center bg-white space-y-3">
+            <div className="w-14 h-14 rounded-3xl bg-emerald-50 text-[#008A45] flex items-center justify-center">
+              <MessageCircle className="w-7 h-7" />
+            </div>
+            <h3 className="text-sm font-bold text-gray-800">Aucune discussion active</h3>
+            <p className="text-xs text-gray-500 max-w-sm">
+              Vos échanges avec les acheteurs et vendeurs sous séquestre ZARÉN s'afficheront ici en temps réel.
+            </p>
           </div>
         )}
 

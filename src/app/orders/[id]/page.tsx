@@ -142,22 +142,42 @@ export default function OrderTrackingPage() {
         />
       </div>
 
-      {/* Buyer Actions */}
-      <div className="space-y-3">
+      {/* Buyer Actions & Post-purchase Discovery */}
+      <div className="space-y-2.5">
         {order.status === 'DELIVERED' && (
           <button
             onClick={() => setShowConfirmModal(true)}
-            className="w-full py-3.5 px-4 rounded-xl bg-zaren-600 hover:bg-zaren-700 text-white font-bold text-xs shadow-lg shadow-zaren-600/30 flex items-center justify-center gap-2 transition-all"
+            className="w-full py-3.5 px-4 rounded-2xl bg-[#008A45] hover:bg-[#007339] text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-700/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <CheckCircle2 className="w-5 h-5" />
             <span>Confirmer la bonne réception (Libérer les fonds)</span>
           </button>
         )}
 
+        {/* Action Recommander cet article */}
+        {order.product && (
+          <Link
+            href={`/p/${order.product.shortCode || order.product.id}`}
+            className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-gray-50 text-gray-800 font-bold text-xs flex items-center justify-center gap-2 border border-gray-200 shadow-xs transition"
+          >
+            <Sparkles className="w-4 h-4 text-emerald-600" />
+            <span>Recommander cet article / Voir la fiche</span>
+          </Link>
+        )}
+
+        {/* Bouton Voir le Grand Marché */}
+        <Link
+          href="/"
+          className="w-full py-3 px-4 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition"
+        >
+          <Package className="w-4 h-4 text-emerald-400" />
+          <span>Explorer le Grand Marché ZARÉN</span>
+        </Link>
+
         {['PAID', 'PREPARING', 'IN_TRANSIT', 'DELIVERED'].includes(order.status) && (
           <button
             onClick={() => setShowDisputeModal(true)}
-            className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 transition-all border border-slate-200"
+            className="w-full py-2.5 px-4 rounded-2xl bg-gray-50 hover:bg-gray-100 text-gray-600 font-semibold text-xs flex items-center justify-center gap-2 transition-all border border-gray-200 cursor-pointer"
           >
             <AlertTriangle className="w-4 h-4 text-amber-600" />
             <span>Signaler un problème / Ouvrir un litige</span>

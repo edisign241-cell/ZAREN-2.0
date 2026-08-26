@@ -156,6 +156,8 @@ export interface SellerProfile {
   latitude?: number;
   longitude?: number;
   address?: string;
+  shopHours?: string;
+  whatsapp?: string;
   country?: string;
   city?: string;
   district?: string;
@@ -278,8 +280,6 @@ export interface Transaction {
   idempotencyKey: string;
   createdAt: string;
 }
-
-export type SubscriptionPlan = 'PRO' | 'PER_LISTING' | 'STANDARD';
 
 export type OfferStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COUNTERED';
 

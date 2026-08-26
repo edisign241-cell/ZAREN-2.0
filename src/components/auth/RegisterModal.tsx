@@ -171,7 +171,7 @@ export default function RegisterModal() {
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#008A45]/20 border border-[#008A45]/40 text-[#4ade80] text-xs font-black italic mb-3">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>ACCÈS SÉCURISÉ ZARÉN 2.0</span>
+            <span>ACCÈS SÉCURISÉ ZARÉN</span>
           </div>
 
           <h2 className="text-xl font-black italic tracking-tight">

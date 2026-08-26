@@ -24,15 +24,19 @@ import { formatPrice } from '@/lib/utils';
 import ProductGallery from '@/components/product/ProductGallery';
 import ShareButton from '@/components/product/ShareButton';
 import MakeOfferModal from '@/components/product/MakeOfferModal';
+import BuyerFastOnboardingModal from '@/components/auth/BuyerFastOnboardingModal';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ProductViewPage() {
   const params = useParams();
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const shortCode = params.code as string;
 
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState(zarenStore.getReviews());
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [isBuyerModalOpen, setIsBuyerModalOpen] = useState(false);
 
   useEffect(() => {
     if (shortCode) {
@@ -271,19 +275,35 @@ export default function ProductViewPage() {
           </button>
 
           {/* Bouton Achat Direct Séquestre */}
-          <Link
-            href={`/checkout/${product.id}`}
-            className="flex-1 h-12 rounded-xl bg-[#008A45] hover:bg-[#007339] text-white font-bold text-xs shadow-md shadow-emerald-700/20 flex items-center justify-between px-3.5 transition-all"
-          >
-            <div className="flex items-center gap-1.5">
-              <Lock className="w-4 h-4" />
-              <span>Acheter Sécurisé</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-black">{formatPrice(product.price)}</span>
-              <ArrowRight className="w-4 h-4" />
-            </div>
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href={`/checkout/${product.id}`}
+              className="flex-1 h-12 rounded-xl bg-[#008A45] hover:bg-[#007339] text-white font-bold text-xs shadow-md shadow-emerald-700/20 flex items-center justify-between px-3.5 transition-all"
+            >
+              <div className="flex items-center gap-1.5">
+                <Lock className="w-4 h-4" />
+                <span>Acheter Sécurisé</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-black">{formatPrice(product.price)}</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
+          ) : (
+            <button
+              onClick={() => setIsBuyerModalOpen(true)}
+              className="flex-1 h-12 rounded-xl bg-[#008A45] hover:bg-[#007339] text-white font-bold text-xs shadow-md shadow-emerald-700/20 flex items-center justify-between px-3.5 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-1.5">
+                <Lock className="w-4 h-4" />
+                <span>Commander l'article</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-black">{formatPrice(product.price)}</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </button>
+          )}
         </div>
       </div>
 
@@ -292,6 +312,14 @@ export default function ProductViewPage() {
         product={product}
         isOpen={isOfferModalOpen}
         onClose={() => setIsOfferModalOpen(false)}
+      />
+
+      {/* Modale Onboarding Rapide Acheteur Invité */}
+      <BuyerFastOnboardingModal
+        isOpen={isBuyerModalOpen}
+        onClose={() => setIsBuyerModalOpen(false)}
+        product={product}
+        redirectTo={`/checkout/${product.id}`}
       />
 
     </div>

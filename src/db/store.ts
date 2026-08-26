@@ -71,11 +71,11 @@ class ZarénStore {
     return this.products.find(p => p.shortCode.toLowerCase() === shortCode.toLowerCase());
   }
 
-  addProduct(product: Omit<Product, 'id' | 'createdAt' | 'viewsCount' | 'sharesCount' | 'status'>): Product {
+  addProduct(product: Omit<Product, 'id' | 'createdAt' | 'viewsCount' | 'sharesCount' | 'status'> & { status?: any }): Product {
     const newProduct: Product = {
       ...product,
       id: `prod_${Date.now()}`,
-      status: 'ACTIVE',
+      status: product.status || 'ACTIVE',
       viewsCount: 1,
       sharesCount: 0,
       createdAt: new Date().toISOString(),
@@ -84,6 +84,15 @@ class ZarénStore {
     this.products.unshift(newProduct);
     this.persist();
     return newProduct;
+  }
+
+  updateProductStatus(id: string, status: any): Product | undefined {
+    const prod = this.getProductById(id);
+    if (prod) {
+      prod.status = status;
+      this.persist();
+    }
+    return prod;
   }
 
   incrementViews(productId: string) {
@@ -396,6 +405,15 @@ class ZarénStore {
 
     this.persist();
     return offer;
+  }
+
+  updateSellerProfile(updates: Partial<SellerProfile>): SellerProfile {
+    this.seller = {
+      ...this.seller,
+      ...updates,
+    };
+    this.persist();
+    return this.seller;
   }
 
   getSellerProfile(): SellerProfile {

@@ -28,6 +28,7 @@ import {
   Zap,
   CheckCircle2
 } from 'lucide-react';
+import AvatarUploader from '@/components/profile/AvatarUploader';
 
 const PRESET_BANNERS = [
   'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80',
@@ -188,19 +189,13 @@ export default function ProfileSettingsPage() {
               </h2>
             </div>
 
-            {/* Photo / Avatar */}
-            <div className="flex items-center gap-4 pt-1">
-              <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[#008A45] shadow-sm shrink-0 bg-neutral-100">
-                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              </div>
-              <div className="space-y-1.5 flex-1">
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-[#008A45] text-xs font-bold rounded-xl border border-emerald-200 cursor-pointer shadow-xs transition">
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>Changer la photo de profil</span>
-                  <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-                </label>
-                <p className="text-[10px] text-gray-500 font-medium">Visible sur votre profil et vos annonces</p>
-              </div>
+            {/* Photo / Avatar Uploader persistant */}
+            <div className="pt-1">
+              <AvatarUploader
+                currentAvatarUrl={avatarUrl}
+                userName={fullName}
+                onAvatarUpdated={(newUrl) => setAvatarUrl(newUrl)}
+              />
             </div>
 
             {/* Nom complet */}

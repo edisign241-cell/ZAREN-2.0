@@ -25,6 +25,8 @@ import { zarenStore } from '@/db/store';
 import { generateShortCode, formatPrice } from '@/lib/utils';
 import AIProductEnhancerModal from '@/components/seller/AIProductEnhancerModal';
 import { generateProductCopy, AICopyResult } from '@/lib/ai/geminiCopywriter';
+import PublishPaymentModal from '@/components/seller/PublishPaymentModal';
+import { useAuth } from '@/context/AuthContext';
 import confetti from 'canvas-confetti';
 
 const COUNTRIES = [
@@ -110,6 +112,12 @@ Paiement consigné sur compte séquestre. Les fonds ne sont versés au vendeur q
   const [newImageUrl, setNewImageUrl] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
   const [isAIOptimizing, setIsAIOptimizing] = useState(false);
+  const { currentUser } = useAuth();
+  const isPro = currentUser?.account_tier === 'PRO' || currentUser?.plan === 'PRO';
+
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState<any>(null);
+
   const [createdProduct, setCreatedProduct] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [copiedStatus, setCopiedStatus] = useState(false);
@@ -185,8 +193,26 @@ Votre argent reste bloqué sur ZARÉN et n'est remis au vendeur qu'après vérif
       district: `${district}${landmark ? ` (${landmark})` : ''}`,
       deliveryFee: Number(deliveryFee) || 0,
       pickupAvailable,
+      status: isPro ? 'ACTIVE' : 'OUT_OF_STOCK', // Standard: inactive until fee is paid
     });
 
+    const productPayload = {
+      ...newProd,
+      countryName: selectedCountry.name,
+      countryFlag: selectedCountry.flag,
+      cityName: city,
+      districtName: district,
+      landmarkName: landmark,
+    };
+
+    // INTERCEPTION MÉTIER : Si Vendeur Standard -> Déclenchement du paiement 500 FCFA
+    if (!isPro) {
+      setPendingProduct(productPayload);
+      setIsPaymentModalOpen(true);
+      return;
+    }
+
+    // Si Vendeur Pro -> Publication directe sans frais
     try {
       confetti({
         particleCount: 100,
@@ -195,14 +221,15 @@ Votre argent reste bloqué sur ZARÉN et n'est remis au vendeur qu'après vérif
       });
     } catch (err) {}
 
-    setCreatedProduct({
-      ...newProd,
-      countryName: selectedCountry.name,
-      countryFlag: selectedCountry.flag,
-      cityName: city,
-      districtName: district,
-      landmarkName: landmark
-    });
+    setCreatedProduct(productPayload);
+  };
+
+  const handlePaymentSuccess = () => {
+    setIsPaymentModalOpen(false);
+    if (pendingProduct) {
+      zarenStore.updateProductStatus(pendingProduct.id, 'ACTIVE');
+      setCreatedProduct(pendingProduct);
+    }
   };
 
   const getShareUrl = () => {
@@ -620,6 +647,16 @@ Lien d'achat direct : ${getShareUrl()}`;
               currentTitle={title}
               onClose={() => setShowAIModal(false)}
               onApply={handleApplyAI}
+            />
+
+            {/* Standard Seller 500 FCFA Publication Payment Modal */}
+            <PublishPaymentModal
+              isOpen={isPaymentModalOpen}
+              onClose={() => setIsPaymentModalOpen(false)}
+              productId={pendingProduct?.id || ''}
+              productTitle={pendingProduct?.title || title}
+              productPrice={Number(pendingProduct?.price || price || 0)}
+              onPaymentSuccess={handlePaymentSuccess}
             />
           </div>
         )}

@@ -93,6 +93,7 @@ interface AuthContextType {
   switchAccountTier: (tier: 'STANDARD' | 'PRO') => void;
   upgradeToPro: () => void;
   downgradeToStandard: () => void;
+  updateUser: (updates: Partial<AuthUser>) => void;
   lastGeneratedOtp: { phone: string; code: string } | null;
 }
 
@@ -120,6 +121,7 @@ const AuthContext = createContext<AuthContextType>({
   switchAccountTier: () => {},
   upgradeToPro: () => {},
   downgradeToStandard: () => {},
+  updateUser: () => {},
   lastGeneratedOtp: null
 });
 
@@ -373,6 +375,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
   const closeLoginModal = () => setIsLoginModalOpen(false);
 
+  const updateUser = (updates: Partial<AuthUser>) => {
+    if (!currentUser) return;
+    const updatedUser = { ...currentUser, ...updates };
+    setCurrentUser(updatedUser);
+    try {
+      localStorage.setItem('zaren_user_data', JSON.stringify(updatedUser));
+    } catch (e) {}
+  };
+
   const openRegisterModal = () => {
     setIsLoginModalOpen(false);
     setIsForgotPasswordModalOpen(false);
@@ -413,6 +424,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         switchAccountTier,
         upgradeToPro,
         downgradeToStandard,
+        updateUser,
         lastGeneratedOtp
       }}
     >

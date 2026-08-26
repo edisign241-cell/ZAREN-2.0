@@ -508,7 +508,7 @@ export default function Navbar() {
             {/* 3. PIED DU MENU HAMBURGER */}
             <div className="p-4 bg-[#F8F8F8] border-t border-[#E5E5E5] flex items-center justify-between">
               <span className="text-[10px] text-gray-500 font-bold">
-                ZARÉN v2.0 • Afrique Centrale
+                ZARÉN • Commerce Sécurisé par Séquestre
               </span>
               <span className="text-[10px] font-black text-[#008A45] flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> Séquestre Garanti

@@ -50,7 +50,7 @@ export default function ProductViewPage() {
       title: product.title,
       price: product.price,
       image: product.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80',
-      sellerName: product.seller?.businessName || product.seller?.name || 'Vendeur ZARÉN',
+      sellerName: product.seller?.businessName || 'Vendeur ZARÉN',
       city: product.city,
       district: product.district
     });

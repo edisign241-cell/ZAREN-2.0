@@ -25,6 +25,7 @@ import {
   X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { zarenStore } from '@/db/store';
 
 export default function CartPage() {
   const router = useRouter();
@@ -50,11 +51,26 @@ export default function CartPage() {
         });
       } catch (err) {}
 
-      const orderId = 'ord_' + Date.now();
+      let createdOrder;
+      if (cart.length > 0) {
+        const firstItem = cart[0];
+        createdOrder = zarenStore.createOrder({
+          productId: firstItem.id,
+          buyerName: currentUser?.name || 'Acheteur ZARÉN',
+          buyerPhone: buyerPhone,
+          city: currentUser?.city || 'Libreville',
+          district: deliveryAddress,
+          deliveryMode: 'SELLER_DELIVERY',
+          buyerNotes: `Commande Panier (${cart.length} articles : ${cart.map(c => `${c.quantity}x ${c.title}`).join(', ')})`,
+          quantity: firstItem.quantity,
+          customPrice: cartTotal
+        });
+      }
+      const targetId = createdOrder ? createdOrder.id : ('ord_' + Date.now());
       clearCart();
       setIsCheckoutModalOpen(false);
-      router.push(`/orders/${orderId}`);
-    }, 1500);
+      router.push(`/orders/${targetId}`);
+    }, 1200);
   };
 
   return (

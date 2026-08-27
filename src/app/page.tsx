@@ -100,7 +100,7 @@ export default function HomePage() {
       title: p.title,
       price: p.price,
       image: p.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80',
-      sellerName: p.seller?.businessName || p.seller?.name || 'Vendeur ZARÉN',
+      sellerName: p.seller?.businessName || 'Vendeur ZARÉN',
       city: p.city,
       district: p.district
     });

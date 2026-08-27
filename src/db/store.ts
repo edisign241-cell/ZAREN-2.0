@@ -275,6 +275,29 @@ class ZarénStore {
     return newDispute;
   }
 
+  resolveDispute(disputeId: string, action: 'refund' | 'release', notes?: string): Dispute {
+    const disputeIndex = this.disputes.findIndex(d => d.id === disputeId);
+    if (disputeIndex === -1) throw new Error('Litige introuvable');
+    const dispute = this.disputes[disputeIndex];
+    const order = this.getOrderById(dispute.orderId);
+
+    if (action === 'refund') {
+      dispute.status = 'RESOLVED_REFUND';
+      if (order) {
+        this.updateOrderStatus(order.id, 'REFUNDED', notes || 'Remboursement acheteur validé');
+      }
+    } else {
+      dispute.status = 'RESOLVED_PAYOUT';
+      if (order) {
+        this.updateOrderStatus(order.id, 'COMPLETED', notes || 'Fonds débloqués au vendeur');
+      }
+    }
+    dispute.resolutionNotes = notes;
+    this.disputes[disputeIndex] = dispute;
+    this.persist();
+    return dispute;
+  }
+
   // ===================== MESSAGING & CHAT =====================
   getConversations(): Conversation[] {
     return this.conversations;

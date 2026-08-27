@@ -1,5 +1,6 @@
 import { Product, Order, Review, Dispute, SellerProfile, OrderStatus, Conversation, Message, ProductOffer } from '@/types';
 import { EscrowStateMachine } from '@/lib/escrow/stateMachine';
+import { supabaseSync } from '@/lib/supabaseDb';
 
 const DEFAULT_SELLER_PROFILE: SellerProfile = {
   id: 'usr_seller_main',
@@ -115,6 +116,7 @@ class ZarénStore {
     };
     this.products.unshift(newProduct);
     this.persist();
+    supabaseSync.syncProduct(newProduct);
     return newProduct;
   }
 
@@ -123,6 +125,7 @@ class ZarénStore {
     if (prod) {
       prod.status = status;
       this.persist();
+      supabaseSync.syncProduct(prod);
     }
     return prod;
   }
@@ -209,6 +212,7 @@ class ZarénStore {
 
     this.orders.unshift(newOrder);
     this.persist();
+    supabaseSync.syncOrder(newOrder);
     return newOrder;
   }
 
@@ -222,6 +226,7 @@ class ZarénStore {
     if (index !== -1) {
       this.orders[index] = updatedOrder;
       this.persist();
+      supabaseSync.updateOrderStatus(orderId, targetStatus, reason);
     }
 
     return updatedOrder;
@@ -245,6 +250,7 @@ class ZarénStore {
     };
     this.reviews.unshift(newReview);
     this.persist();
+    supabaseSync.syncReview(newReview);
     return newReview;
   }
 
@@ -272,6 +278,7 @@ class ZarénStore {
 
     this.disputes.unshift(newDispute);
     this.persist();
+    supabaseSync.syncDispute(newDispute);
     return newDispute;
   }
 
@@ -295,6 +302,7 @@ class ZarénStore {
     dispute.resolutionNotes = notes;
     this.disputes[disputeIndex] = dispute;
     this.persist();
+    supabaseSync.syncDispute(dispute);
     return dispute;
   }
 
@@ -468,6 +476,13 @@ class ZarénStore {
       ...updates,
     };
     this.persist();
+    supabaseSync.updateUserProfile(this.seller.userId || this.seller.id, {
+      businessName: updates.businessName,
+      avatar: updates.avatarUrl || updates.logoUrl,
+      city: updates.city,
+      district: updates.district,
+      phone: updates.whatsapp || updates.payoutAccountNumber
+    });
     return this.seller;
   }
 

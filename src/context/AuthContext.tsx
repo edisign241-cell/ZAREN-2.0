@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
+import { supabaseSync } from '@/lib/supabaseDb';
 
 import { CENTRAL_AFRICA_COUNTRIES, CountryConfig, getCountryByCode } from '@/lib/geo/countries';
 
@@ -273,25 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {}
 
     // Synchronisation en base de données Supabase
-    try {
-      supabase.from('users').upsert({
-        id: user.id,
-        phone_number: user.phone,
-        full_name: user.name,
-        username: user.username,
-        email: user.email,
-        city: user.city,
-        district: user.district,
-        role: 'USER',
-        account_tier: user.account_tier,
-        plan: user.plan,
-        is_active: true,
-        is_phone_verified: true,
-        updated_at: new Date().toISOString()
-      }).then(({ error }) => {
-        if (error) console.info('Supabase sync user note:', error.message);
-      });
-    } catch (err) {}
+    supabaseSync.syncUser(user, authToken);
 
     return { success: true };
   };
@@ -362,25 +345,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {}
 
     // Synchronisation avec Supabase
-    try {
-      supabase.from('users').upsert({
-        id: newUser.id,
-        phone_number: params.phone.trim(),
-        full_name: params.name.trim(),
-        username: cleanUsername,
-        email: cleanEmail,
-        city: params.city,
-        district: params.district || 'Centre',
-        role: 'USER',
-        account_tier: tier,
-        plan,
-        is_active: true,
-        is_phone_verified: true,
-        created_at: new Date().toISOString()
-      }).then(({ error }) => {
-        if (error) console.info('Supabase sync user note:', error.message);
-      });
-    } catch (err) {}
+    supabaseSync.syncUser(newUser, authToken);
   };
 
   const resetPassword = async (params: {
@@ -413,6 +378,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem('zaren_user_data', JSON.stringify(updated));
     } catch (err) {}
+    supabaseSync.updateUserProfile(currentUser.id, {
+      account_tier: tier,
+      plan: updated.plan
+    });
   };
 
   const upgradeToPro = () => {
@@ -429,8 +398,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem('zaren_is_logged_in', 'false');
       localStorage.removeItem('zaren_user_data');
+      localStorage.removeItem('zaren_auth_token');
       if (typeof document !== 'undefined') {
         document.cookie = 'zaren_is_logged_in=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'zaren_auth_token=; path=/; max-age=0; SameSite=Lax';
       }
     } catch (err) {}
     router.push('/');
@@ -450,6 +421,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem('zaren_user_data', JSON.stringify(updatedUser));
     } catch (e) {}
+    supabaseSync.updateUserProfile(currentUser.id, updates);
   };
 
   const openRegisterModal = () => {

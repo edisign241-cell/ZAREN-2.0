@@ -15,7 +15,7 @@ export type OrderStatus =
 
 export type DeliveryMode = 'PICKUP' | 'SELLER_DELIVERY' | 'THIRD_PARTY';
 
-export type PaymentGateway = 'WAVE' | 'ORANGE_MONEY' | 'MTN_MOMO' | 'AIRTEL_MONEY' | 'MOOV_MONEY' | 'STRIPE' | 'CARD';
+export type PaymentGateway = 'WAVE' | 'ORANGE_MONEY' | 'MTN_MOMO' | 'AIRTEL_MONEY' | 'MOOV_MONEY' | 'STRIPE' | 'CARD' | 'CASH_ON_DELIVERY';
 
 export type TransactionType = 'ESCROW_DEPOSIT' | 'PAYOUT_SELLER' | 'REFUND_BUYER' | 'PLATFORM_FEE';
 

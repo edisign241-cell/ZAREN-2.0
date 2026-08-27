@@ -134,9 +134,14 @@ export default function OrderTrackingPage() {
             <span className="text-xs font-black text-zaren-700 block mt-0.5">
               {formatPrice(order.totalAmount)}
             </span>
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px] text-slate-500 block">
               Livraison : {order.deliveryAddress.district}, {order.deliveryAddress.city}
             </span>
+            {order.buyerNotes && (
+              <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-semibold border border-emerald-200">
+                {order.buyerNotes.includes('livraison') ? '💵 Paiement à la livraison' : '🔒 Mobile Money Séquestré'}
+              </span>
+            )}
           </div>
         </div>
       )}

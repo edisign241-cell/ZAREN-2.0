@@ -33,6 +33,7 @@ export default function CartPage() {
   const { isLoggedIn, currentUser, openLoginModal, openRegisterModal } = useAuth();
 
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [paymentGateway, setPaymentGateway] = useState<'AIRTEL_MONEY' | 'MOOV_MONEY' | 'CASH_ON_DELIVERY'>('AIRTEL_MONEY');
   const [buyerPhone, setBuyerPhone] = useState(currentUser?.phone || '+241 07 45 88 12');
   const [deliveryAddress, setDeliveryAddress] = useState(currentUser?.district ? `${currentUser.city}, ${currentUser.district}` : 'Libreville, Gabon');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -54,6 +55,7 @@ export default function CartPage() {
       let createdOrder;
       if (cart.length > 0) {
         const firstItem = cart[0];
+        const payLabel = paymentGateway === 'CASH_ON_DELIVERY' ? 'Paiement à la livraison (Mains propres)' : `Paiement Mobile Money (${paymentGateway})`;
         createdOrder = zarenStore.createOrder({
           productId: firstItem.id,
           buyerName: currentUser?.name || 'Acheteur ZARÉN',
@@ -61,7 +63,7 @@ export default function CartPage() {
           city: currentUser?.city || 'Libreville',
           district: deliveryAddress,
           deliveryMode: 'SELLER_DELIVERY',
-          buyerNotes: `Commande Panier (${cart.length} articles : ${cart.map(c => `${c.quantity}x ${c.title}`).join(', ')})`,
+          buyerNotes: `${payLabel} • Commande Panier (${cart.length} articles : ${cart.map(c => `${c.quantity}x ${c.title}`).join(', ')})`,
           quantity: firstItem.quantity,
           customPrice: cartTotal
         });
@@ -382,10 +384,64 @@ export default function CartPage() {
               </span>
             </div>
 
-            <form onSubmit={handleCheckoutSubmit} className="space-y-3 pt-1">
+            <form onSubmit={handleCheckoutSubmit} className="space-y-3.5 pt-1">
+              
+              {/* Choix du mode de règlement */}
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1.5">
+                  Mode de règlement :
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentGateway('AIRTEL_MONEY')}
+                    className={`p-2.5 rounded-xl border text-left flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                      paymentGateway === 'AIRTEL_MONEY'
+                        ? 'border-red-500 bg-red-50/80 ring-1 ring-red-500 text-red-900 font-bold'
+                        : 'border-gray-200 bg-gray-50/50 hover:bg-gray-100 text-gray-700 text-xs'
+                    }`}
+                  >
+                    <div className="w-6 h-6 rounded-md bg-red-600 text-white font-black text-[9px] flex items-center justify-center">
+                      AM
+                    </div>
+                    <span className="text-[11px]">Airtel</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentGateway('MOOV_MONEY')}
+                    className={`p-2.5 rounded-xl border text-left flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                      paymentGateway === 'MOOV_MONEY'
+                        ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-600 text-blue-900 font-bold'
+                        : 'border-gray-200 bg-gray-50/50 hover:bg-gray-100 text-gray-700 text-xs'
+                    }`}
+                  >
+                    <div className="w-6 h-6 rounded-md bg-blue-600 text-white font-black text-[9px] flex items-center justify-center">
+                      MM
+                    </div>
+                    <span className="text-[11px]">Moov</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentGateway('CASH_ON_DELIVERY')}
+                    className={`p-2.5 rounded-xl border text-left flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                      paymentGateway === 'CASH_ON_DELIVERY'
+                        ? 'border-emerald-600 bg-emerald-50/80 ring-1 ring-emerald-600 text-emerald-900 font-bold'
+                        : 'border-gray-200 bg-gray-50/50 hover:bg-gray-100 text-gray-700 text-xs'
+                    }`}
+                  >
+                    <div className="w-6 h-6 rounded-md bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center">
+                      💵
+                    </div>
+                    <span className="text-[11px] text-center leading-tight">À la livraison</span>
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="text-xs font-bold text-gray-700 block mb-1">
-                  Numéro Mobile Money pour le débit *
+                  Numéro de téléphone de contact *
                 </label>
                 <input
                   type="tel"
@@ -412,7 +468,11 @@ export default function CartPage() {
               </div>
 
               <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-[11px] text-gray-600 space-y-1">
-                🔒 <strong>Garantie Anti-Arnaque :</strong> Vous recevrez une invitation de paiement USSD sur votre téléphone. L'argent restera bloqué sous séquestre jusqu'à votre feu vert.
+                {paymentGateway === 'CASH_ON_DELIVERY' ? (
+                  <span>💵 <strong>Remise en mains propres :</strong> Vous réglez directement au livreur en espèces ou Mobile Money après vérification complète du colis.</span>
+                ) : (
+                  <span>🔒 <strong>Garantie Séquestre :</strong> Débit sécurisé par Mobile Money ({paymentGateway === 'AIRTEL_MONEY' ? 'Airtel' : 'Moov'}). L'argent reste bloqué jusqu'à votre validation.</span>
+                )}
               </div>
 
               <button
@@ -421,7 +481,12 @@ export default function CartPage() {
                 className="w-full py-3.5 px-4 rounded-xl bg-[#008A45] hover:bg-[#007339] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-700/20 transition cursor-pointer disabled:opacity-50"
               >
                 {isProcessing ? (
-                  <span>Consignation du séquestre en cours...</span>
+                  <span>Enregistrement de la commande...</span>
+                ) : paymentGateway === 'CASH_ON_DELIVERY' ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Confirmer la commande ({new Intl.NumberFormat('fr-FR').format(cartTotal)} FCFA à la livraison)</span>
+                  </>
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />

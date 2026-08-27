@@ -254,6 +254,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       disputeRatePercent: 0
     };
 
+    const authToken = `zrn_tok_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+
     setIsLoggedIn(true);
     setCurrentUser(user);
     setIsLoginModalOpen(false);
@@ -262,10 +264,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       localStorage.setItem('zaren_is_logged_in', 'true');
+      localStorage.setItem('zaren_auth_token', authToken);
       localStorage.setItem('zaren_user_data', JSON.stringify(user));
       if (typeof document !== 'undefined') {
         document.cookie = 'zaren_is_logged_in=true; path=/; max-age=31536000; SameSite=Lax';
+        document.cookie = `zaren_auth_token=${authToken}; path=/; max-age=31536000; SameSite=Lax`;
       }
+    } catch (err) {}
+
+    // Synchronisation en base de données Supabase
+    try {
+      supabase.from('users').upsert({
+        id: user.id,
+        phone_number: user.phone,
+        full_name: user.name,
+        username: user.username,
+        email: user.email,
+        city: user.city,
+        district: user.district,
+        role: 'USER',
+        account_tier: user.account_tier,
+        plan: user.plan,
+        is_active: true,
+        is_phone_verified: true,
+        updated_at: new Date().toISOString()
+      }).then(({ error }) => {
+        if (error) console.info('Supabase sync user note:', error.message);
+      });
     } catch (err) {}
 
     return { success: true };
@@ -318,6 +343,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       disputeRatePercent: 0
     };
 
+    const authToken = `zrn_tok_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+
     setIsLoggedIn(true);
     setCurrentUser(newUser);
     setIsRegisterModalOpen(false);
@@ -326,15 +353,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       localStorage.setItem('zaren_is_logged_in', 'true');
+      localStorage.setItem('zaren_auth_token', authToken);
       localStorage.setItem('zaren_user_data', JSON.stringify(newUser));
       if (typeof document !== 'undefined') {
         document.cookie = 'zaren_is_logged_in=true; path=/; max-age=31536000; SameSite=Lax';
+        document.cookie = `zaren_auth_token=${authToken}; path=/; max-age=31536000; SameSite=Lax`;
       }
     } catch (err) {}
 
     // Synchronisation avec Supabase
     try {
       supabase.from('users').upsert({
+        id: newUser.id,
         phone_number: params.phone.trim(),
         full_name: params.name.trim(),
         username: cleanUsername,
@@ -345,13 +375,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         account_tier: tier,
         plan,
         is_active: true,
-        is_phone_verified: true
+        is_phone_verified: true,
+        created_at: new Date().toISOString()
       }).then(({ error }) => {
-        if (error) console.warn('Supabase sync user warning:', error);
+        if (error) console.info('Supabase sync user note:', error.message);
       });
-    } catch (err) {
-      console.warn('Supabase sync error:', err);
-    }
+    } catch (err) {}
   };
 
   const resetPassword = async (params: {

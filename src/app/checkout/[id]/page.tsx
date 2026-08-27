@@ -258,57 +258,119 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* 3. Moyen de paiement Mobile Money */}
+      {/* 3. Moyen de paiement */}
       <div className="mb-6">
         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5">
           <Lock className="w-3.5 h-3.5 text-slate-500" />
-          <span>3. Paiement Mobile Money</span>
+          <span>3. Mode de paiement sécurisé</span>
         </h2>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          
+          {/* Airtel Money */}
           <button
             type="button"
-            onClick={() => setPaymentGateway('WAVE')}
-            className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
-              paymentGateway === 'WAVE'
-                ? 'border-sky-500 bg-sky-50/80 shadow-xs'
+            onClick={() => setPaymentGateway('AIRTEL_MONEY')}
+            className={`p-3 rounded-2xl border flex items-center gap-2.5 transition-all text-left cursor-pointer ${
+              paymentGateway === 'AIRTEL_MONEY'
+                ? 'border-red-500 bg-red-50/80 shadow-xs ring-1 ring-red-500'
                 : 'border-slate-200 bg-white hover:bg-slate-50'
             }`}
           >
-            <div className="w-7 h-7 rounded-full bg-sky-500 text-white font-black text-[10px] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-red-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
+              AM
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900">Airtel Money</div>
+              <div className="text-[10px] text-slate-500">Séquestre direct</div>
+            </div>
+          </button>
+
+          {/* Moov Money */}
+          <button
+            type="button"
+            onClick={() => setPaymentGateway('MOOV_MONEY')}
+            className={`p-3 rounded-2xl border flex items-center gap-2.5 transition-all text-left cursor-pointer ${
+              paymentGateway === 'MOOV_MONEY'
+                ? 'border-blue-600 bg-blue-50/80 shadow-xs ring-1 ring-blue-600'
+                : 'border-slate-200 bg-white hover:bg-slate-50'
+            }`}
+          >
+            <div className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
+              MM
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900">Moov Money</div>
+              <div className="text-[10px] text-slate-500">Séquestre direct</div>
+            </div>
+          </button>
+
+          {/* Paiement à la Livraison */}
+          <button
+            type="button"
+            onClick={() => setPaymentGateway('CASH_ON_DELIVERY')}
+            className={`p-3 rounded-2xl border flex items-center gap-2.5 transition-all text-left col-span-2 sm:col-span-1 cursor-pointer ${
+              paymentGateway === 'CASH_ON_DELIVERY'
+                ? 'border-emerald-600 bg-emerald-50/80 shadow-xs ring-1 ring-emerald-600'
+                : 'border-slate-200 bg-white hover:bg-slate-50'
+            }`}
+          >
+            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
+              💵
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900">À la livraison</div>
+              <div className="text-[10px] text-emerald-700 font-bold">Mains propres</div>
+            </div>
+          </button>
+
+          {/* Wave */}
+          <button
+            type="button"
+            onClick={() => setPaymentGateway('WAVE')}
+            className={`p-2.5 rounded-2xl border flex items-center gap-2 transition-all text-left cursor-pointer ${
+              paymentGateway === 'WAVE'
+                ? 'border-sky-500 bg-sky-50/80 shadow-xs ring-1 ring-sky-500'
+                : 'border-slate-200 bg-white hover:bg-slate-50'
+            }`}
+          >
+            <div className="w-7 h-7 rounded-xl bg-sky-500 text-white font-black text-[10px] flex items-center justify-center shrink-0">
               W
             </div>
             <span className="text-xs font-bold text-slate-900">Wave</span>
           </button>
 
+          {/* Orange Money */}
           <button
             type="button"
             onClick={() => setPaymentGateway('ORANGE_MONEY')}
-            className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
+            className={`p-2.5 rounded-2xl border flex items-center gap-2 transition-all text-left cursor-pointer ${
               paymentGateway === 'ORANGE_MONEY'
-                ? 'border-orange-500 bg-orange-50/80 shadow-xs'
+                ? 'border-orange-500 bg-orange-50/80 shadow-xs ring-1 ring-orange-500'
                 : 'border-slate-200 bg-white hover:bg-slate-50'
             }`}
           >
-            <div className="w-7 h-7 rounded-full bg-orange-500 text-white font-black text-[10px] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-xl bg-orange-500 text-white font-black text-[10px] flex items-center justify-center shrink-0">
               OM
             </div>
             <span className="text-xs font-bold text-slate-900">Orange</span>
           </button>
 
+          {/* MTN MoMo */}
           <button
             type="button"
             onClick={() => setPaymentGateway('MTN_MOMO')}
-            className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
+            className={`p-2.5 rounded-2xl border flex items-center gap-2 transition-all text-left cursor-pointer ${
               paymentGateway === 'MTN_MOMO'
-                ? 'border-amber-500 bg-amber-50/80 shadow-xs'
+                ? 'border-amber-500 bg-amber-50/80 shadow-xs ring-1 ring-amber-500'
                 : 'border-slate-200 bg-white hover:bg-slate-50'
             }`}
           >
-            <div className="w-7 h-7 rounded-full bg-amber-500 text-slate-900 font-black text-[10px] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-xl bg-amber-500 text-slate-900 font-black text-[10px] flex items-center justify-center shrink-0">
               MTN
             </div>
-            <span className="text-xs font-bold text-slate-900">MoMo</span>
+            <span className="text-xs font-bold text-slate-900">MTN MoMo</span>
           </button>
+
         </div>
       </div>
 
@@ -316,10 +378,14 @@ export default function CheckoutPage() {
       <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 mb-5">
         <div className="flex items-center gap-2 mb-1">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span className="text-xs font-bold text-emerald-900">Paiement 100% Séquestré</span>
+          <span className="text-xs font-bold text-emerald-900">
+            {paymentGateway === 'CASH_ON_DELIVERY' ? 'Remise en mains propres sécurisée' : 'Paiement 100% Séquestré'}
+          </span>
         </div>
         <p className="text-[11px] text-emerald-800 leading-relaxed">
-          Vos {formatPrice(totalAmount)} restent protégés par Zarén. Le vendeur n'est payé qu'après votre confirmation de bonne réception.
+          {paymentGateway === 'CASH_ON_DELIVERY'
+            ? 'Vous réglez en espèces ou Mobile Money directement au livreur après vérification complète de la conformité du produit.'
+            : `Vos ${formatPrice(totalAmount)} restent protégés par Zarén. Le vendeur n'est payé qu'après votre confirmation de bonne réception.`}
         </p>
       </div>
 
@@ -338,7 +404,7 @@ export default function CheckoutPage() {
           <span>Offerte</span>
         </div>
         <div className="flex items-center justify-between text-slate-900 font-black text-sm pt-2 border-t border-slate-200">
-          <span>Total à payer sous séquestre</span>
+          <span>{paymentGateway === 'CASH_ON_DELIVERY' ? 'Total à régler à la livraison' : 'Total à payer sous séquestre'}</span>
           <span className="text-zaren-700">{formatPrice(totalAmount)}</span>
         </div>
       </div>
@@ -349,12 +415,14 @@ export default function CheckoutPage() {
           <button
             onClick={handlePay}
             disabled={isProcessing}
-            className="w-full h-12 rounded-xl bg-zaren-600 hover:bg-zaren-700 text-white font-bold text-xs shadow-md shadow-zaren-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+            className="w-full h-12 rounded-xl bg-zaren-600 hover:bg-zaren-700 text-white font-bold text-xs shadow-md shadow-zaren-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
           >
             <Lock className="w-4 h-4" />
             <span>
               {isProcessing
-                ? 'Sécurisation des fonds...'
+                ? 'Enregistrement de la commande...'
+                : paymentGateway === 'CASH_ON_DELIVERY'
+                ? `Confirmer la commande (${formatPrice(totalAmount)} à la livraison)`
                 : `Payer ${formatPrice(totalAmount)} par ${paymentGateway}`}
             </span>
           </button>
